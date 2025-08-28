@@ -37,50 +37,6 @@ let db = {
 // Variable para almacenar el ID del cliente a eliminar
 let clienteIdAEliminar = null;
 
-////////Funcion para eliminar/////////
-document.addEventListener("click", (e) => {
-    if (e.target.closest(".btn-eliminar")) {
-        const btn = e.target.closest(".btn-eliminar");
-        clienteIdAEliminar = btn.getAttribute("data-id");
-        const nombreCliente = btn.getAttribute("data-nombre");
-
-        // Mostrar el nombre en el modal
-        document.getElementById("cliente-eliminar-nombre").textContent = nombreCliente;
-
-        // Abrir modal
-        document.getElementById("modal-eliminar").style.display = "flex";
-    }
-});
-
-// Cancelar eliminación
-document.getElementById("cancelar-eliminar").addEventListener("click", () => {
-    clienteIdAEliminar = null;
-    document.getElementById("modal-eliminar").style.display = "none";
-});
-
-// Confirmar eliminación
-document.getElementById("confirmar-eliminar").addEventListener("click", async () => {
-    if (!clienteIdAEliminar) return;
-
-    try {
-        await db.collection("clientes").doc(clienteIdAEliminar).delete();
-
-        // Eliminar la fila de la tabla en el DOM
-        const fila = document.querySelector(`[data-id="${clienteIdAEliminar}"]`).closest("tr");
-        if (fila) fila.remove();
-
-        alert("✅ Cliente eliminado con éxito");
-    } catch (error) {
-        console.error("❌ Error eliminando cliente:", error);
-        alert("Error eliminando cliente");
-    }
-
-    // Cerrar modal
-    document.getElementById("modal-eliminar").style.display = "none";
-    clienteIdAEliminar = null;
-});
-
-
 // Inicializar Firebase
 function inicializarFirebase() {
   try {
@@ -367,6 +323,59 @@ function guardarCliente() {
   document.getElementById("modal-cliente").classList.remove("active");
 
   alert("Cliente guardado correctamente");
+}
+
+////Funcion eliminar clientes
+
+function inicializarEliminarClientes() {
+  const modalEliminar = document.getElementById("modal-eliminar");
+  const cancelarEliminar = document.getElementById("cancelar-eliminar");
+  const confirmarEliminar = document.getElementById("confirmar-eliminar");
+  const nombreEliminar = document.getElementById("cliente-eliminar-nombre");
+
+  let clienteIdAEliminar = null;
+
+  // Delegación: escuchar clicks en toda la tabla
+  document.addEventListener("click", (e) => {
+    if (e.target.closest(".btn-eliminar")) {
+      const btn = e.target.closest(".btn-eliminar");
+      clienteIdAEliminar = btn.dataset.id;
+      const nombre = btn.dataset.nombre;
+
+      nombreEliminar.textContent = nombre;
+      modalEliminar.style.display = "flex";
+    }
+  });
+
+  // Cancelar
+  cancelarEliminar.addEventListener("click", () => {
+    modalEliminar.style.display = "none";
+    clienteIdAEliminar = null;
+  });
+
+  // Confirmar
+  confirmarEliminar.addEventListener("click", async () => {
+    if (!clienteIdAEliminar) return;
+
+    try {
+      await db.collection("clientes").doc(clienteIdAEliminar).delete();
+
+      // Quitar la fila de la tabla
+      const fila = document
+        .querySelector(`.btn-eliminar[data-id="${clienteIdAEliminar}"]`)
+        ?.closest("tr");
+
+      if (fila) fila.remove();
+
+      alert("✅ Cliente eliminado con éxito");
+    } catch (error) {
+      console.error("❌ Error eliminando cliente:", error);
+      alert("Error eliminando cliente");
+    }
+
+    modalEliminar.style.display = "none";
+    clienteIdAEliminar = null;
+  });
 }
 
 // Función para eliminar cliente (modificada para Firebase)
@@ -658,78 +667,78 @@ function cargarDatosIniciales() {
     const nextMonth = new Date(today);
     nextMonth.setMonth(today.getMonth() + 1);
 
-    db.clientes = [
-      {
-        id: 1,
-        nombre: "Juan Pérez",
-        dni: "12345678",
-        telefono: "123456789",
-        email: "juan@email.com",
-        membresia: "Premium",
-        vencimiento: formatDate(nextMonth),
-        activo: true,
-      },
-      {
-        id: 2,
-        nombre: "María García",
-        dni: "87654321",
-        telefono: "987654321",
-        email: "maria@email.com",
-        membresia: "Básica",
-        vencimiento: formatDate(tomorrow),
-        activo: true,
-      },
-      {
-        id: 3,
-        nombre: "Carlos López",
-        dni: "55555555",
-        telefono: "555123456",
-        email: "carlos@email.com",
-        membresia: "Premium",
-        vencimiento: formatDate(yesterday),
-        activo: false,
-      },
-      {
-        id: 4,
-        nombre: "Ana Martínez",
-        dni: "11111111",
-        telefono: "444789123",
-        email: "ana@email.com",
-        membresia: "Premium",
-        vencimiento: formatDate(inThreeDays),
-        activo: true,
-      },
-      {
-        id: 5,
-        nombre: "Luis Rodríguez",
-        dni: "22222222",
-        telefono: "333456789",
-        email: "luis@email.com",
-        membresia: "Oro",
-        vencimiento: formatDate(nextMonth),
-        activo: true,
-      },
-      {
-        id: 6,
-        nombre: "Marta Sánchez",
-        dni: "33333333",
-        telefono: "222987654",
-        email: "marta@email.com",
-        membresia: "Básica",
-        vencimiento: formatDate(yesterday),
-        activo: false,
-      },
-      {
-        id: 7,
-        nombre: "Pedro Gómez",
-        dni: "44444444",
-        telefono: "111222333",
-        email: "pedro@email.com",
-        membresia: "Platino",
-        vencimiento: formatDate(nextWeek),
-        activo: true,
-      },
-    ];
+    // db.clientes = [
+    //   {
+    //     id: 1,
+    //     nombre: "Juan Pérez",
+    //     dni: "12345678",
+    //     telefono: "123456789",
+    //     email: "juan@email.com",
+    //     membresia: "Premium",
+    //     vencimiento: formatDate(nextMonth),
+    //     activo: true,
+    //   },
+    //   {
+    //     id: 2,
+    //     nombre: "María García",
+    //     dni: "87654321",
+    //     telefono: "987654321",
+    //     email: "maria@email.com",
+    //     membresia: "Básica",
+    //     vencimiento: formatDate(tomorrow),
+    //     activo: true,
+    //   },
+    //   {
+    //     id: 3,
+    //     nombre: "Carlos López",
+    //     dni: "55555555",
+    //     telefono: "555123456",
+    //     email: "carlos@email.com",
+    //     membresia: "Premium",
+    //     vencimiento: formatDate(yesterday),
+    //     activo: false,
+    //   },
+    //   {
+    //     id: 4,
+    //     nombre: "Ana Martínez",
+    //     dni: "11111111",
+    //     telefono: "444789123",
+    //     email: "ana@email.com",
+    //     membresia: "Premium",
+    //     vencimiento: formatDate(inThreeDays),
+    //     activo: true,
+    //   },
+    //   {
+    //     id: 5,
+    //     nombre: "Luis Rodríguez",
+    //     dni: "22222222",
+    //     telefono: "333456789",
+    //     email: "luis@email.com",
+    //     membresia: "Oro",
+    //     vencimiento: formatDate(nextMonth),
+    //     activo: true,
+    //   },
+    //   {
+    //     id: 6,
+    //     nombre: "Marta Sánchez",
+    //     dni: "33333333",
+    //     telefono: "222987654",
+    //     email: "marta@email.com",
+    //     membresia: "Básica",
+    //     vencimiento: formatDate(yesterday),
+    //     activo: false,
+    //   },
+    //   {
+    //     id: 7,
+    //     nombre: "Pedro Gómez",
+    //     dni: "44444444",
+    //     telefono: "111222333",
+    //     email: "pedro@email.com",
+    //     membresia: "Platino",
+    //     vencimiento: formatDate(nextWeek),
+    //     activo: true,
+    //   },
+    // ];
     localStorage.setItem("clientes", JSON.stringify(db.clientes));
   }
 
@@ -996,7 +1005,6 @@ function inicializarDashboard() {
     btnRegistrarPago.addEventListener("click", registrarPago);
   }
 }
-
 
 // Inicializar página de clientes (VERSIÓN CORREGIDA)
 function inicializarClientes() {
@@ -1307,8 +1315,10 @@ function buscarClientePorDni() {
   }
 
   // Buscar cliente localmente primero para respuesta inmediata
-  const clienteLocal = db.clientes.find((c) => c.dni && c.dni === dni && c.activo);
-  
+  const clienteLocal = db.clientes.find(
+    (c) => c.dni && c.dni === dni && c.activo
+  );
+
   if (clienteLocal) {
     clienteInfo.style.display = "block";
     clienteNombre.textContent = `${clienteLocal.nombre || "Cliente"} - ${
@@ -1321,7 +1331,8 @@ function buscarClientePorDni() {
   if (dbFirebase && userUID) {
     try {
       // Buscar en Firebase
-      dbFirebase.collection("clientes")
+      dbFirebase
+        .collection("clientes")
         .where("userId", "==", userUID)
         .where("dni", "==", dni)
         .where("activo", "==", true)
@@ -1331,16 +1342,16 @@ function buscarClientePorDni() {
             const clienteDoc = querySnapshot.docs[0];
             const clienteFirebase = {
               id: clienteDoc.id,
-              ...clienteDoc.data()
+              ...clienteDoc.data(),
             };
-            
+
             clienteInfo.style.display = "block";
-            clienteNombre.textContent = `${clienteFirebase.nombre || "Cliente"} - ${
-              clienteFirebase.membresia || "Sin membresía"
-            }`;
-            
+            clienteNombre.textContent = `${
+              clienteFirebase.nombre || "Cliente"
+            } - ${clienteFirebase.membresia || "Sin membresía"}`;
+
             // Guardar localmente para futuras búsquedas
-            if (!db.clientes.some(c => c.id === clienteFirebase.id)) {
+            if (!db.clientes.some((c) => c.id === clienteFirebase.id)) {
               db.clientes.push(clienteFirebase);
               localStorage.setItem("clientes", JSON.stringify(db.clientes));
             }
@@ -1517,30 +1528,36 @@ function actualizarEstadisticasRendimiento() {
 
 // Registrar Service Worker para PWA
 function registerServiceWorker() {
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function() {
-      navigator.serviceWorker.register('/service-worker.js')
-        .then(function(registration) {
-          console.log('ServiceWorker registration successful with scope: ', registration.scope);
-          
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker
+        .register("/service-worker.js")
+        .then(function (registration) {
+          console.log(
+            "ServiceWorker registration successful with scope: ",
+            registration.scope
+          );
+
           // Verificar si hay una nueva versión del Service Worker
-          registration.addEventListener('updatefound', () => {
+          registration.addEventListener("updatefound", () => {
             const newWorker = registration.installing;
-            console.log('Nueva versión del Service Worker encontrada');
-            
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed') {
+            console.log("Nueva versión del Service Worker encontrada");
+
+            newWorker.addEventListener("statechange", () => {
+              if (newWorker.state === "installed") {
                 if (navigator.serviceWorker.controller) {
                   // Hay una nueva versión disponible
-                  console.log('Nueva versión disponible. Por favor, actualiza la página.');
+                  console.log(
+                    "Nueva versión disponible. Por favor, actualiza la página."
+                  );
                   showUpdateNotification();
                 }
               }
             });
           });
         })
-        .catch(function(error) {
-          console.log('ServiceWorker registration failed: ', error);
+        .catch(function (error) {
+          console.log("ServiceWorker registration failed: ", error);
         });
     });
   }
@@ -1549,13 +1566,13 @@ function registerServiceWorker() {
 // Mostrar notificación de actualización
 function showUpdateNotification() {
   // Puedes implementar un mensaje para el usuario si lo deseas
-  console.log('Hay una nueva versión de la aplicación disponible');
+  console.log("Hay una nueva versión de la aplicación disponible");
 }
 
 // Detectar si la app está instalada
 function trackAppInstallation() {
-  window.addEventListener('appinstalled', (event) => {
-    console.log('GymAdmin fue instalado como PWA');
+  window.addEventListener("appinstalled", (event) => {
+    console.log("GymAdmin fue instalado como PWA");
     // Puedes trackear la instalación o realizar acciones adicionales
   });
 }
@@ -1574,44 +1591,44 @@ function initializePWA() {
 let deferredPrompt;
 
 function initializeInstallPrompt() {
-  const installButton = document.getElementById('installButton');
-  
+  const installButton = document.getElementById("installButton");
+
   if (!installButton) return;
-  
-  window.addEventListener('beforeinstallprompt', (e) => {
+
+  window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    
+
     // Mostrar botón de instalación después de 10 segundos
     setTimeout(() => {
       if (deferredPrompt) {
-        installButton.style.display = 'block';
+        installButton.style.display = "block";
       }
     }, 10000);
   });
 
   // Al hacer clic en el botón de instalación
-  installButton.addEventListener('click', async () => {
+  installButton.addEventListener("click", async () => {
     if (!deferredPrompt) return;
-    
+
     // Mostrar el prompt de instalación nativo
     deferredPrompt.prompt();
-    
+
     // Esperar a que el usuario decida
     const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-      console.log('Usuario aceptó instalar la PWA');
-      installButton.style.display = 'none';
+
+    if (outcome === "accepted") {
+      console.log("Usuario aceptó instalar la PWA");
+      installButton.style.display = "none";
     }
-    
+
     deferredPrompt = null;
   });
 
   // Ocultar el botón si ya está instalado
-  window.addEventListener('appinstalled', () => {
+  window.addEventListener("appinstalled", () => {
     if (installButton) {
-      installButton.style.display = 'none';
+      installButton.style.display = "none";
     }
     deferredPrompt = null;
   });
@@ -1622,8 +1639,8 @@ function initializeInstallPrompt() {
 // ==============================================
 
 // Inicializar PWA cuando el DOM esté listo
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializePWA);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initializePWA);
 } else {
   initializePWA();
 }
