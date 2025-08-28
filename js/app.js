@@ -124,11 +124,11 @@ function inicializarFirebase() {
 
 // Función para mostrar modal de login
 function mostrarModalLogin() {
-    console.log("🔓 Mostrando modal de login");
-    
-    // Solo crear el modal si no existe
-    if (!document.getElementById('modal-login')) {
-        const modalHTML = `
+  console.log("🔓 Mostrando modal de login");
+
+  // Solo crear el modal si no existe
+  if (!document.getElementById("modal-login")) {
+    const modalHTML = `
         <div class="modal-backdrop active" id="modal-login" style="z-index: 10000; display: flex;">
             <div class="modal" style="max-width: 400px; margin: auto;">
                 <div class="modal-header">
@@ -158,95 +158,104 @@ function mostrarModalLogin() {
             </div>
         </div>
         `;
-        document.body.insertAdjacentHTML('beforeend', modalHTML);
-        
-        // Configurar event listeners
-        document.getElementById('btn-login').addEventListener('click', iniciarSesion);
-        document.getElementById('btn-registrar').addEventListener('click', registrarUsuario);
-        
-        // Permitir login con Enter
-        document.getElementById('login-password').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                iniciarSesion();
-            }
-        });
-        
-        console.log("✅ Modal de login creado");
-    } else {
-        // Si ya existe, mostrarlo
-        document.getElementById('modal-login').classList.add('active');
-    }
+    document.body.insertAdjacentHTML("beforeend", modalHTML);
+
+    // Configurar event listeners
+    document
+      .getElementById("btn-login")
+      .addEventListener("click", iniciarSesion);
+    document
+      .getElementById("btn-registrar")
+      .addEventListener("click", registrarUsuario);
+
+    // Permitir login con Enter
+    document
+      .getElementById("login-password")
+      .addEventListener("keypress", function (e) {
+        if (e.key === "Enter") {
+          iniciarSesion();
+        }
+      });
+
+    console.log("✅ Modal de login creado");
+  } else {
+    // Si ya existe, mostrarlo
+    document.getElementById("modal-login").classList.add("active");
+  }
 }
 
 // Función para registrar usuario
 async function registrarUsuario() {
-    const email = document.getElementById('login-email').value;
-    const password = document.getElementById('login-password').value;
-    
-    if (!email || !password) {
-        alert('Por favor, completa ambos campos');
-        return;
-    }
-    
-    if (password.length < 6) {
-        alert('La contraseña debe tener al menos 6 caracteres');
-        return;
-    }
-    
-    try {
-        const userCredential = await authFirebase.createUserWithEmailAndPassword(email, password);
-        console.log('✅ Usuario registrado:', userCredential.user.uid);
-        
-        // Crear configuración inicial para el nuevo usuario
-        await guardarConfiguracionEnFirebase(db.configuracion);
-        
-        alert('Cuenta creada exitosamente. Ya puedes usar la aplicación.');
-        
-    } catch (error) {
-        console.error('❌ Error al registrar:', error);
-        alert('Error al crear cuenta: ' + error.message);
-    }
+  const email = document.getElementById("login-email").value;
+  const password = document.getElementById("login-password").value;
+
+  if (!email || !password) {
+    alert("Por favor, completa ambos campos");
+    return;
+  }
+
+  if (password.length < 6) {
+    alert("La contraseña debe tener al menos 6 caracteres");
+    return;
+  }
+
+  try {
+    const userCredential = await authFirebase.createUserWithEmailAndPassword(
+      email,
+      password
+    );
+    console.log("✅ Usuario registrado:", userCredential.user.uid);
+
+    // Crear configuración inicial para el nuevo usuario
+    await guardarConfiguracionEnFirebase(db.configuracion);
+
+    alert("Cuenta creada exitosamente. Ya puedes usar la aplicación.");
+  } catch (error) {
+    console.error("❌ Error al registrar:", error);
+    alert("Error al crear cuenta: " + error.message);
+  }
 }
 
 // Función para iniciar sesión
 async function iniciarSesion() {
-    const email = document.getElementById('login-email').value;
-    const password = document.getElementById('login-password').value;
-    
-    if (!email || !password) {
-        alert('Por favor, completa ambos campos');
-        return;
+  const email = document.getElementById("login-email").value;
+  const password = document.getElementById("login-password").value;
+
+  if (!email || !password) {
+    alert("Por favor, completa ambos campos");
+    return;
+  }
+
+  try {
+    await authFirebase.signInWithEmailAndPassword(email, password);
+    console.log("✅ Sesión iniciada correctamente");
+  } catch (error) {
+    console.error("❌ Error al iniciar sesión:", error);
+
+    // Si el usuario no existe, ofrecer crearlo
+    if (error.code === "auth/user-not-found") {
+      if (confirm("Usuario no encontrado. ¿Deseas crear una nueva cuenta?")) {
+        registrarUsuario();
+      }
+    } else {
+      alert("Error al iniciar sesión: " + error.message);
     }
-    
-    try {
-        await authFirebase.signInWithEmailAndPassword(email, password);
-        console.log('✅ Sesión iniciada correctamente');
-        
-    } catch (error) {
-        console.error('❌ Error al iniciar sesión:', error);
-        
-        // Si el usuario no existe, ofrecer crearlo
-        if (error.code === 'auth/user-not-found') {
-            if (confirm('Usuario no encontrado. ¿Deseas crear una nueva cuenta?')) {
-                registrarUsuario();
-            }
-        } else {
-            alert('Error al iniciar sesión: ' + error.message);
-        }
-    }
+  }
 }
 
 // Función para cerrar sesión
 function cerrarSesion() {
-    authFirebase.signOut().then(() => {
-        console.log('✅ Sesión cerrada');
-        // Recargar la página para limpiar el estado
-        window.location.reload();
-    }).catch((error) => {
-        console.error('❌ Error al cerrar sesión:', error);
+  authFirebase
+    .signOut()
+    .then(() => {
+      console.log("✅ Sesión cerrada");
+      // Recargar la página para limpiar el estado
+      window.location.reload();
+    })
+    .catch((error) => {
+      console.error("❌ Error al cerrar sesión:", error);
     });
 }
-
 
 // Cargar datos desde Firebase
 async function cargarDatosDesdeFirebase() {
@@ -369,7 +378,6 @@ async function guardarClienteEnFirebase(cliente) {
     }
   }
 }
-
 
 async function eliminarClienteDeFirebase(id) {
   // Eliminar de Firebase si está disponible
@@ -564,7 +572,6 @@ function inicializarEliminarClientes() {
 //   eliminarClienteDeFirebase(id);
 //   alert("Cliente eliminado correctamente");
 // }
-
 
 // Función para eliminar cliente
 
@@ -1015,12 +1022,12 @@ document.addEventListener("DOMContentLoaded", function () {
   // Inicializar Firebase
   inicializarFirebase();
 
-    setTimeout(() => {
-      if (!isAuthenticated && !document.getElementById("modal-login")) {
-        console.log("🔄 Mostrando modal por timeout de seguridad");
-        mostrarModalLogin();
-      }
-    }, 1000);
+  setTimeout(() => {
+    if (!isAuthenticated && !document.getElementById("modal-login")) {
+      console.log("🔄 Mostrando modal por timeout de seguridad");
+      mostrarModalLogin();
+    }
+  }, 1000);
 
   // Inicializar la página específica
   const currentPage = window.location.pathname.split("/").pop();
@@ -1555,32 +1562,30 @@ function actualizarUI() {
   }
 }
 
-
 ///Funcion para actualizarUI autententicado
 function actualizarUIautenticado() {
-    // Mostrar botón de cerrar sesión
-    const logoutBtn = document.getElementById('btn-logout');
-    if (logoutBtn) {
-        logoutBtn.style.display = 'block';
-        logoutBtn.onclick = cerrarSesion;
-    }
-    
-    // Mostrar info del usuario
-    const userInfo = document.getElementById('user-info');
-    if (userInfo && userUID) {
-        userInfo.textContent = `Usuario: ${userUID.substring(0, 8)}...`;
-    }
-    
-    // Actualizar estado de conexión
-    const connectionStatus = document.getElementById('connection-status');
-    if (connectionStatus) {
-        connectionStatus.innerHTML = `<i class="fas fa-user-check"></i> Conectado`;
-        connectionStatus.className = 'connection-status online';
-    }
+  // Mostrar botón de cerrar sesión
+  const logoutBtn = document.getElementById("btn-logout");
+  if (logoutBtn) {
+    logoutBtn.style.display = "block";
+    logoutBtn.onclick = cerrarSesion;
+  }
 
-    console.log("✅ UI de autenticación actualizada");
+  // Mostrar info del usuario
+  const userInfo = document.getElementById("user-info");
+  if (userInfo && userUID) {
+    userInfo.textContent = `Usuario: ${userUID.substring(0, 8)}...`;
+  }
+
+  // Actualizar estado de conexión
+  const connectionStatus = document.getElementById("connection-status");
+  if (connectionStatus) {
+    connectionStatus.innerHTML = `<i class="fas fa-user-check"></i> Conectado`;
+    connectionStatus.className = "connection-status online";
+  }
+
+  console.log("✅ UI de autenticación actualizada");
 }
-
 
 // Función para actualizar estadísticas de rendimiento (faltante en tu código original)
 function actualizarEstadisticasRendimiento() {

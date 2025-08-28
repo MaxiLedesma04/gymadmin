@@ -731,39 +731,44 @@ table th {
 
 /* Estilos para el modal de login */
 #modal-login {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background: rgba(0, 0, 0, 0.8);
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
+    z-index: 10000;
+}
+
+#modal-login.active {
+    display: flex !important;
 }
 
 #modal-login .modal {
     background: white;
     border-radius: 10px;
     padding: 25px;
-    box-shadow: 0 5px 25px rgba(0,0,0,0.3);
     width: 90%;
     max-width: 400px;
-}
-
-#modal-login .modal-header {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-#modal-login .modal-header h3 {
-    color: #2c3e50;
-    margin: 0;
-    font-size: 24px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.3);
 }
 
 #modal-login .form-group {
     margin-bottom: 15px;
 }
 
+#modal-login label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
 #modal-login input {
     width: 100%;
-    padding: 12px;
+    padding: 10px;
     border: 2px solid #ddd;
     border-radius: 5px;
     font-size: 16px;
@@ -772,19 +777,4 @@ table th {
 #modal-login input:focus {
     border-color: #3498db;
     outline: none;
-}
-
-#btn-login, #btn-registrar {
-    width: 100%;
-    padding: 12px;
-    border: none;
-    border-radius: 5px;
-    color: white;
-    font-size: 16px;
-    cursor: pointer;
-    margin-bottom: 10px;
-}
-
-#btn-login:hover, #btn-registrar:hover {
-    opacity: 0.9;
 }
