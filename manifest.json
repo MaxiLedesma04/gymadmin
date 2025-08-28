@@ -2,7 +2,7 @@
   "name": "GymAdmin",
   "short_name": "GymAdmin",
   "description": "Sistema de gestión para gimnasios",
-  "start_url": "/",
+  "start_url": "/gymadmin/",
   "display": "standalone",
   "background_color": "#2c3e50",
   "theme_color": "#3498db",
