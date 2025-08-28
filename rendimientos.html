@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#3498db"/>
+    <link rel="manifest" href="manifest.json">
+    <title>GymAdmin - Rendimientos</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Header (se cargará dinámicamente) -->
+    <div id="header-container"></div>
+
+    <div class="container">
+        <section id="rendimientos">
+            <h2>Rendimientos</h2>
+            <div class="dashboard">
+                <div class="card">
+                    <h3><i class="fas fa-chart-bar"></i> Rendimiento Mensual</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Nuevos Clientes</div>
+                            <div class="stat-value" id="nuevos-clientes">0</div>
+                            <div class="stat-label">este mes</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Ingresos</div>
+                            <div class="stat-value">$<span id="ingresos-mes">0</span></div>
+                            <div class="stat-label">este mes</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Clientes Activos</div>
+                            <div class="stat-value" id="clientes-activos-mes">0%</div>
+                            <div class="stat-label">ratio</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Renovaciones</div>
+                            <div class="stat-value" id="renovaciones-mes">0%</div>
+                            <div class="stat-label">éxito</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3><i class="fas fa-trending-up"></i> Proyección</h3>
+                    <p id="texto-proyeccion">Cargando datos de rendimiento...</p>
+                    <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                        <h4>Recomendaciones:</h4>
+                        <ul style="margin-left: 1.5rem; margin-top: 0.5rem;" id="lista-recomendaciones">
+                            <li>Cargando recomendaciones...</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div id="connection-status" class="connection-status online">
+        <i class="fas fa-wifi"></i> En línea
+    </div>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#3498db"/>
+    <link rel="manifest" href="manifest.json">
+    <title>GymAdmin - Dashboard</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Header (se cargará dinámicamente) -->
+    <div id="header-container"></div>
+
+        <!-- Botón de instalación PWA (NUEVO) -->
+    <div id="installButton" class="install-button">
+        <button>
+            <i class="fas fa-download"></i> Instalar App
+        </button>
+    </div>
+
+    <div class="container">
+        <section id="dashboard">
+            <h2>Dashboard</h2>
+            <div class="dashboard">
+                <div class="card">
+                    <h3><i class="fas fa-chart-pie"></i> Resumen</h3>
+                    <p>Clientes activos: <span id="clientes-activos">0</span></p>
+                    <p>Pagos del mes: <span id="pagos-mes">0</span></p>
+                    <p>Ingresos: $<span id="ingresos">0</span></p>
+                </div>
+                
+                <div class="card">
+                    <h3><i class="fas fa-money-bill-wave"></i> Registrar Pago</h3>
+                    <div class="form-group">
+                        <label for="buscar-dni">Buscar por DNI</label>
+                        <div class="search-box">
+                            <input type="text" id="buscar-dni" placeholder="Ingrese DNI del cliente" maxlength="8">
+                            <button id="btn-buscar-dni"><i class="fas fa-search"></i></button>
+                        </div>
+                    </div>
+                    <div id="cliente-info" style="display: none;">
+                        <div class="form-group">
+                            <label>Cliente encontrado:</label>
+                            <div id="cliente-nombre" style="padding: 0.5rem; background: #f8f9fa; border-radius: 4px;"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="monto">Monto</label>
+                            <input type="number" id="monto" placeholder="Monto a pagar">
+                        </div>
+                        <div class="form-group">
+                            <label for="fecha">Fecha</label>
+                            <input type="date" id="fecha">
+                        </div>
+                        <button id="registrar-pago"><i class="fas fa-check"></i> Registrar Pago</button>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3><i class="fas fa-history"></i> Clientes Recientes</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>DNI</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clientes-recientes">
+                                <!-- Datos cargados dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal para nuevo cliente -->
+    <div class="modal-backdrop" id="modal-cliente">
+        <div class="modal">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-plus"></i> Nuevo Cliente</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-cliente">
+                    <div class="form-group">
+                        <label for="nombre">Nombre completo *</label>
+                        <input type="text" id="nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="dni">DNI *</label>
+                        <input type="text" id="dni" required maxlength="8">
+                    </div>
+                    <div class="form-group">
+                        <label for="telefono">Teléfono *</label>
+                        <input type="tel" id="telefono" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="membresia">Tipo de Membresía *</label>
+                        <select id="membresia" required>
+                            <option value="">Seleccionar membresía</option>
+                            <option value="Básica">Básica</option>
+                            <option value="Premium">Premium</option>
+                            <option value="Oro">Oro</option>
+                            <option value="Platino">Platino</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="vencimiento">Fecha de Vencimiento *</label>
+                        <input type="date" id="vencimiento" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="estado">Estado *</label>
+                        <select id="estado" required>
+                            <option value="true">Activo</option>
+                            <option value="false">Inactivo</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelar-cliente">Cancelar</button>
+                <button id="guardar-cliente"><i class="fas fa-save"></i> Guardar Cliente</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para confirmar eliminación -->
+    <div class="modal-backdrop" id="modal-eliminar">
+        <div class="modal">
+            <div class="modal-header">
+                <h3><i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar a <span id="cliente-eliminar-nombre" style="font-weight: bold;"></span>?</p>
+                <p>Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelar-eliminar">Cancelar</button>
+                <button class="btn-danger" id="confirmar-eliminar"><i class="fas fa-trash"></i> Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="connection-status" class="connection-status online">
+        <i class="fas fa-wifi"></i> En línea
+    </div>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

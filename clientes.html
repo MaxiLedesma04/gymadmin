@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#3498db"/>
+    <link rel="manifest" href="manifest.json">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GymAdmin - Gestión de Clientes</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Header (se cargará dinámicamente) -->
+    <div id="header-container"></div>
+
+    <div class="container">
+        <section id="clientes">
+            <h2>Gestión de Clientes</h2>
+            <div class="card">
+                <h3><i class="fas fa-users-cog"></i> Lista de Clientes</h3>
+                <div class="search-box">
+                    <!-- CAMBIÉ EL ID A "input-buscar-cliente" PARA QUE COINCIDA CON EL JS -->
+                    <input type="text" id="input-buscar-cliente" placeholder="Buscar por nombre o DNI...">
+                    <!-- CAMBIÉ EL ID A "btn-buscar-cliente" PARA QUE COINCIDA CON EL JS -->
+                    <button id="btn-buscar-cliente"><i class="fas fa-search"></i></button>
+                </div>
+                <button id="nuevo-cliente"><i class="fas fa-plus"></i> Nuevo Cliente</button>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>DNI</th>
+                                <th>Teléfono</th>
+                                <th>Email</th>
+                                <th>Vencimiento</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-clientes">
+                            <!-- Datos cargados dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal para nuevo cliente -->
+    <div class="modal-backdrop" id="modal-cliente">
+        <div class="modal">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-plus"></i> Nuevo Cliente</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-cliente">
+                    <div class="form-group">
+                        <label for="nombre">Nombre completo *</label>
+                        <input type="text" id="nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="dni">DNI *</label>
+                        <input type="text" id="dni" required maxlength="8">
+                    </div>
+                    <div class="form-group">
+                        <label for="telefono">Teléfono *</label>
+                        <input type="tel" id="telefono" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="membresia">Tipo de Membresía *</label>
+                        <select id="membresia" required>
+                            <option value="">Seleccionar membresía</option>
+                            <option value="Básica">Básica</option>
+                            <option value="Premium">Premium</option>
+                            <option value="Oro">Oro</option>
+                            <option value="Platino">Platino</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="vencimiento">Fecha de Vencimiento *</label>
+                        <input type="date" id="vencimiento" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="estado">Estado *</label>
+                        <select id="estado" required>
+                            <option value="true">Activo</option>
+                            <option value="false">Inactivo</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelar-cliente">Cancelar</button>
+                <button id="guardar-cliente"><i class="fas fa-save"></i> Guardar Cliente</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para confirmar eliminación -->
+    <div class="modal-backdrop" id="modal-eliminar">
+        <div class="modal">
+            <div class="modal-header">
+                <h3><i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar a <span id="cliente-eliminar-nombre" style="font-weight: bold;"></span>?</p>
+                <p>Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelar-eliminar">Cancelar</button>
+                <button class="btn-danger" id="confirmar-eliminar"><i class="fas fa-trash"></i> Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="connection-status" class="connection-status online">
+        <i class="fas fa-wifi"></i> En línea
+    </div>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
