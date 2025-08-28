@@ -12,37 +12,24 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 // Inicializar servicios de Firebase
-const auth = firebase.auth();
-const firestore = firebase.firestore(); // Cambiado de 'db' a 'firestore'
-
-// Referencias a las colecciones
-const clientesRef = firestore.collection("clientes");
-const pagosRef = firestore.collection("pagos");
-const configuracionRef = firestore.collection("configuracion");
+const authFirebase = firebase.auth();
+const dbFirebase = firebase.firestore();
 
 // Función para obtener el UID del usuario actual
 function getCurrentUserUID() {
-  const user = auth.currentUser;
+  const user = authFirebase.currentUser;
   return user ? user.uid : null;
 }
 
 // Función para verificar autenticación
-function checkAuth() {
-  auth.onAuthStateChanged(user => {
-    if (!user) {
-      // Redirigir a página de login si no está autenticado
-      window.location.href = "login.html";
-    }
+function checkAuth(callback) {
+  authFirebase.onAuthStateChanged((user) => {
+    if (callback) callback(user);
   });
 }
 
-// Exportar referencias y funciones si es necesario
-window.firebaseAuth = auth;
-window.firebaseDB = firestore; // Cambiado de 'db' a 'firestore'
-window.firebaseConfig = {
-  clientesRef,
-  pagosRef,
-  configuracionRef,
-  getCurrentUserUID,
-  checkAuth
-};
+// Exportar para uso global
+window.authFirebase = authFirebase;
+window.dbFirebase = dbFirebase;
+window.getCurrentUserUID = getCurrentUserUID;
+window.checkAuth = checkAuth;

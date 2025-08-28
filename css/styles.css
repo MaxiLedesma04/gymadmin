@@ -277,6 +277,59 @@ button.btn-secondary:hover {
     background-color: #7f8c8d;
 }
 
+
+/* Estilos para el menú de usuario */
+.user-menu {
+    display: flex;
+    align-items: center;
+    margin-right: 15px;
+}
+
+#btn-logout {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    /* transition: background 0.3s; */
+}
+
+#btn-logout:hover {
+    background: #c0392b;
+}
+
+#user-info {
+    font-size: 14px;
+    color: #666;
+    margin-right: 10px;
+}
+
+/* Ajustar header para el nuevo contenido */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .user-menu {
+        display: none; /* Ocultar en móviles para ahorrar espacio */
+    }
+    
+    #user-info {
+        display: none;
+    }
+}
+
+
+
+
+
+
+
 /* Search Box */
 .search-box {
     display: flex;
