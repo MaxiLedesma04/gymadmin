@@ -6,6 +6,14 @@ if (!isFirebaseAvailable) {
   console.log("Firebase no disponible, usando modo offline");
   // Aquí cargarías datos desde localStorage
 }
+
+console.log("🎯 app.js cargado correctamente");
+
+// DEBUG: Verificar que Firebase está disponible
+console.log("Firebase disponible:", typeof firebase !== "undefined");
+if (typeof firebase !== "undefined") {
+  console.log("Apps de Firebase:", firebase.apps.length);
+}
 // Variables globales para Firebase
 let dbFirebase = null;
 let authFirebase = null;
@@ -39,121 +47,90 @@ let db = {
 let clienteIdAEliminar = null;
 
 // Inicializar Firebase
-// function inicializarFirebase() {
-//   try {
-//     // Verificar si Firebase está disponible
-//     if (typeof firebase !== "undefined" && firebase.apps.length > 0) {
-//       dbFirebase = firebase.firestore();
-//       authFirebase = firebase.auth();
-//       console.log("Firebase inicializado correctamente");
-
-//       // Configurar observador de autenticación
-//       authFirebase.onAuthStateChanged((user) => {
-//         if (user) {
-//           userUID = user.uid;
-//           console.log("Usuario autenticado:", userUID);
-//           // Cargar datos desde Firebase
-//           cargarDatosDesdeFirebase();
-//         } else {
-//           console.log("Usuario no autenticado, usando datos locales");
-//           // Usar datos locales
-//           cargarDatosIniciales();
-//           cargarNotificaciones();
-//         }
-//       });
-//     } else {
-//       console.log("Firebase no disponible, usando modo offline");
-//       cargarDatosIniciales();
-//     }
-//   } catch (error) {
-//     console.error("Error inicializando Firebase:", error);
-//     cargarDatosIniciales();
-//   }
-// }
-
 function inicializarFirebase() {
-    try {
-      console.log("✅ Firebase configurado correctamente");
+  try {
+    if (typeof firebase !== "undefined") {
+      dbFirebase = firebase.firestore();
+      authFirebase = firebase.auth();
+      console.log("✅ Firebase inicializado correctamente");
 
-      // Usar las variables de tu firebase-config.js
-      authFirebase = window.authFirebase;
-      dbFirebase = window.dbFirebase;
+      // Configurar persistencia de autenticación
+      authFirebase
+        .setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+        .then(() => {
+          console.log("✅ Persistencia de autenticación configurada");
 
-      // Configurar observador de autenticación
-      // authFirebase.onAuthStateChanged((user) => {
-      //     if (user) {
-      //         // Usuario autenticado
-      //         userUID = user.uid;
-      //         isAuthenticated = true;
-      //         console.log("✅ Usuario autenticado:", userUID);
+          // Configurar observador de autenticación
+          authFirebase.onAuthStateChanged((user) => {
+            console.log(
+              "🔄 Estado de autenticación cambiado:",
+              user ? "Autenticado" : "No autenticado"
+            );
 
-      //         // Ocultar modal de login si está visible
-      //         document.getElementById('modal-login')?.classList.remove('active');
+            if (user) {
+              // Usuario autenticado
+              userUID = user.uid;
+              isAuthenticated = true;
+              console.log("✅ Usuario autenticado:", userUID);
 
-      //         // Cargar datos desde Firebase
-      //         cargarDatosDesdeFirebase();
+              // Ocultar modal de login si está visible
+              const modalLogin = document.getElementById("modal-login");
+              if (modalLogin) {
+                modalLogin.classList.remove("active");
+              }
 
-      //     } else {
-      //         // Usuario no autenticado
-      //         console.log("❌ Usuario no autenticado");
-      //         isAuthenticated = false;
-      //         userUID = null;
+              // Actualizar UI de autenticación
+              actualizarUIautenticado();
 
-      //         // Mostrar modal de login
-      //         mostrarModalLogin();
+              // Cargar datos desde Firebase
+              cargarDatosDesdeFirebase();
+            } else {
+              // Usuario no autenticado - NO CARGAR DATOS LOCALES
+              console.log("❌ Usuario no autenticado - Mostrando modal");
+              isAuthenticated = false;
+              userUID = null;
 
-      //         // Usar datos locales temporalmente
-      //         cargarDatosIniciales();
-      //         cargarNotificaciones();
-      //     }
-      // });
-      // En el observador de autenticación:
-      authFirebase.onAuthStateChanged((user) => {
-        if (user) {
-          // Usuario autenticado
-          userUID = user.uid;
-          isAuthenticated = true;
+              // LIMPIAR DATOS LOCALES
+              db.clientes = [];
+              db.pagos = [];
 
-          // 1. Actualizar UI de autenticación
-          actualizarUIautenticado();
+              // Mostrar modal de login inmediatamente
+              mostrarModalLogin();
 
-          // 2. Cargar datos y luego actualizar UI de la app
-          cargarDatosDesdeFirebase().then(() => {
-            actualizarUI(); // ← Esta actualiza los datos del gimnasio
+              // Limpiar la UI
+              actualizarUI(); // Esto mostrará tablas vacías
+            }
           });
-        } else {
-          // Usuario no autenticado
-          isAuthenticated = false;
-          userUID = null;
-
-          // Ocultar elementos de usuario autenticado
-          const logoutBtn = document.getElementById("btn-logout");
-          if (logoutBtn) logoutBtn.style.display = "none";
-
-          // Mostrar modal de login
+        })
+        .catch((error) => {
+          console.error("❌ Error configurando persistencia:", error);
+          // NO cargar datos locales aquí tampoco
+          db.clientes = [];
+          db.pagos = [];
           mostrarModalLogin();
-
-          // Usar datos locales
-          cargarDatosIniciales();
-          actualizarUI(); // ← Actualizar UI con datos locales
-          cargarNotificaciones();
-        }
-      });
-    } catch (error) {
-        console.error("❌ Error inicializando Firebase:", error);
-        cargarDatosIniciales();
+          actualizarUI();
+        });
+    } else {
+      console.log("⚠️ Firebase no disponible");
+      // Mostrar modal de login igualmente
+      mostrarModalLogin();
     }
+  } catch (error) {
+    console.error("❌ Error inicializando Firebase:", error);
+    // Mostrar modal de login en caso de error
+    mostrarModalLogin();
+  }
 }
 
 // Función para mostrar modal de login
 function mostrarModalLogin() {
-    // Solo crear el modal si no existe y si estamos en una página que lo necesita
-    if (!document.getElementById('modal-login') && 
-        !window.location.pathname.includes('login.html')) {
-        
+    console.log("🔓 Mostrando modal de login");
+    
+    // Solo crear el modal si no existe
+    if (!document.getElementById('modal-login')) {
         const modalHTML = `
-        <div class="modal-backdrop active" id="modal-login" style="z-index: 10000;">
-            <div class="modal" style="max-width: 400px;">
+        <div class="modal-backdrop active" id="modal-login" style="z-index: 10000; display: flex;">
+            <div class="modal" style="max-width: 400px; margin: auto;">
                 <div class="modal-header">
                     <h3><i class="fas fa-lock"></i> Iniciar Sesión</h3>
                 </div>
@@ -193,6 +170,11 @@ function mostrarModalLogin() {
                 iniciarSesion();
             }
         });
+        
+        console.log("✅ Modal de login creado");
+    } else {
+        // Si ya existe, mostrarlo
+        document.getElementById('modal-login').classList.add('active');
     }
 }
 
@@ -267,146 +249,71 @@ function cerrarSesion() {
 
 
 // Cargar datos desde Firebase
-// async function cargarDatosDesdeFirebase() {
-//   if (!dbFirebase || !userUID) {
-//     console.log("Firebase no disponible, usando datos locales");
-//     cargarDatosIniciales();
-//     return;
-//   }
-
-//   try {
-//     console.log("Cargando datos desde Firebase...");
-
-//     // Cargar clientes
-//     const clientesSnapshot = await dbFirebase
-//       .collection("clientes")
-//       .where("userId", "==", userUID)
-//       .get();
-
-//     db.clientes = [];
-//     clientesSnapshot.forEach((doc) => {
-//       db.clientes.push({
-//         id: doc.id,
-//         ...doc.data(),
-//       });
-//     });
-
-//     // Cargar pagos
-//     const pagosSnapshot = await dbFirebase
-//       .collection("pagos")
-//       .where("userId", "==", userUID)
-//       .get();
-
-//     db.pagos = [];
-//     pagosSnapshot.forEach((doc) => {
-//       db.pagos.push({
-//         id: doc.id,
-//         ...doc.data(),
-//       });
-//     });
-
-//     // Cargar configuración
-//     const configDoc = await dbFirebase
-//       .collection("configuracion")
-//       .doc(userUID)
-//       .get();
-
-//     if (configDoc.exists) {
-//       db.configuracion = configDoc.data();
-//     }
-
-//     // Guardar en localStorage para offline
-//     localStorage.setItem("clientes", JSON.stringify(db.clientes));
-//     localStorage.setItem("pagos", JSON.stringify(db.pagos));
-//     localStorage.setItem("configuracion", JSON.stringify(db.configuracion));
-
-//     console.log("Datos cargados desde Firebase");
-
-//     // Actualizar UI
-//     actualizarUI();
-//     cargarNotificaciones();
-//   } catch (error) {
-//     console.error("Error cargando datos desde Firebase:", error);
-//     cargarDatosIniciales();
-//   }
-// }
-
-// Cargar datos desde Firebase
 async function cargarDatosDesdeFirebase() {
-    if (!dbFirebase || !userUID) {
-        console.log("⚠️ Firebase no disponible, usando datos locales");
-        cargarDatosIniciales();
-        return;
-    }
+  if (!dbFirebase || !userUID) {
+    console.log("⚠️ Firebase no disponible, usando datos locales");
+    return; // No cargar datos locales aquí, ya se hicieron antes
+  }
 
-    try {
-        console.log("📥 Cargando datos desde Firebase para usuario:", userUID);
+  try {
+    console.log("📥 Cargando datos desde Firebase para usuario:", userUID);
 
-        // Cargar clientes
-        const clientesSnapshot = await dbFirebase
-            .collection("clientes")
-            .where("userId", "==", userUID)
-            .get();
+    // Cargar clientes
+    const clientesSnapshot = await dbFirebase
+      .collection("clientes")
+      .where("userId", "==", userUID)
+      .get();
 
-        db.clientes = [];
-        clientesSnapshot.forEach((doc) => {
-            const data = doc.data();
-            db.clientes.push({
-                id: doc.id,
-                nombre: data.nombre,
-                dni: data.dni,
-                telefono: data.telefono,
-                email: data.email,
-                membresia: data.membresia,
-                vencimiento: data.vencimiento,
-                activo: data.activo,
-                fechaCreacion: data.fechaCreacion?.toDate?.()?.toISOString() || new Date().toISOString()
-            });
-        });
+    db.clientes = [];
+    clientesSnapshot.forEach((doc) => {
+      const data = doc.data();
+      db.clientes.push({
+        id: doc.id,
+        nombre: data.nombre,
+        dni: data.dni,
+        telefono: data.telefono,
+        email: data.email,
+        membresia: data.membresia,
+        vencimiento: data.vencimiento,
+        activo: data.activo,
+        fechaCreacion:
+          data.fechaCreacion?.toDate?.()?.toISOString() ||
+          new Date().toISOString(),
+      });
+    });
 
-        // Cargar pagos
-        const pagosSnapshot = await dbFirebase
-            .collection("pagos")
-            .where("userId", "==", userUID)
-            .get();
+    // Cargar pagos
+    const pagosSnapshot = await dbFirebase
+      .collection("pagos")
+      .where("userId", "==", userUID)
+      .get();
 
-        db.pagos = [];
-        pagosSnapshot.forEach((doc) => {
-            const data = doc.data();
-            db.pagos.push({
-                id: doc.id,
-                clienteId: data.clienteId,
-                monto: data.monto,
-                fecha: data.fecha,
-                timestamp: data.timestamp?.toDate?.()?.toISOString() || new Date().toISOString()
-            });
-        });
+    db.pagos = [];
+    pagosSnapshot.forEach((doc) => {
+      const data = doc.data();
+      db.pagos.push({
+        id: doc.id,
+        clienteId: data.clienteId,
+        monto: data.monto,
+        fecha: data.fecha,
+        timestamp:
+          data.timestamp?.toDate?.()?.toISOString() || new Date().toISOString(),
+      });
+    });
 
-        // Cargar configuración
-        try {
-            const configDoc = await dbFirebase.collection("configuracion").doc(userUID).get();
-            if (configDoc.exists) {
-                db.configuracion = configDoc.data();
-            }
-        } catch (configError) {
-            console.log("⚠️ No se encontró configuración, usando valores por defecto");
-        }
+    // Guardar en localStorage para offline
+    localStorage.setItem("clientes", JSON.stringify(db.clientes));
+    localStorage.setItem("pagos", JSON.stringify(db.pagos));
 
-        // Guardar en localStorage para offline
-        localStorage.setItem("clientes", JSON.stringify(db.clientes));
-        localStorage.setItem("pagos", JSON.stringify(db.pagos));
-        localStorage.setItem("configuracion", JSON.stringify(db.configuracion));
+    console.log("✅ Datos cargados desde Firebase");
 
-        console.log("✅ Datos cargados desde Firebase. Clientes:", db.clientes.length, "Pagos:", db.pagos.length);
-
-        // Actualizar UI
-        actualizarUI();
-        cargarNotificaciones();
-
-    } catch (error) {
-        console.error("❌ Error cargando datos desde Firebase:", error);
-        cargarDatosIniciales();
-    }
+    // Actualizar UI con los datos de Firebase
+    actualizarUI();
+    cargarNotificaciones();
+  } catch (error) {
+    console.error("❌ Error cargando datos desde Firebase:", error);
+    // No llamar cargarDatosIniciales() aquí para evitar duplicación
+  }
 }
 
 // Guardar cliente en Firebase y localmente
@@ -463,45 +370,6 @@ async function guardarClienteEnFirebase(cliente) {
   }
 }
 
-// Eliminar cliente de Firebase y localmente
-// async function eliminarClienteDeFirebase(id) {
-//   // Eliminar localmente primero
-//   const index = db.clientes.findIndex((cliente) => cliente.id === id);
-//   if (index !== -1) {
-//     db.clientes.splice(index, 1);
-//     // Eliminar pagos asociados al cliente
-//     db.pagos = db.pagos.filter((pago) => pago.clienteId !== id);
-
-//     localStorage.setItem("clientes", JSON.stringify(db.clientes));
-//     localStorage.setItem("pagos", JSON.stringify(db.pagos));
-
-//     // Actualizar UI
-//     actualizarUI();
-//     cargarNotificaciones();
-//   }
-
-//   // Eliminar de Firebase si está disponible
-//   if (dbFirebase) {
-//     try {
-//       await dbFirebase.collection("clientes").doc(id).delete();
-//       console.log("Cliente eliminado de Firebase");
-
-//       // También eliminar pagos asociados en Firebase
-//       const pagosSnapshot = await dbFirebase
-//         .collection("pagos")
-//         .where("clienteId", "==", id)
-//         .get();
-
-//       const batch = dbFirebase.batch();
-//       pagosSnapshot.forEach((doc) => {
-//         batch.delete(doc.ref);
-//       });
-//       await batch.commit();
-//     } catch (error) {
-//       console.error("Error eliminando cliente de Firebase:", error);
-//     }
-//   }
-// }
 
 async function eliminarClienteDeFirebase(id) {
   // Eliminar de Firebase si está disponible
@@ -1015,160 +883,21 @@ function inicializarNavegacion() {
 
 // Cargar datos iniciales
 function cargarDatosIniciales() {
-  // Si no hay datos, cargar algunos de ejemplo
-  if (db.clientes.length === 0) {
-    const today = new Date();
-
-    // Crear fechas de vencimiento próximas para notificaciones
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-
-    const inThreeDays = new Date(today);
-    inThreeDays.setDate(today.getDate() + 3);
-
-    const nextWeek = new Date(today);
-    nextWeek.setDate(today.getDate() + 7);
-
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
-
-    const nextMonth = new Date(today);
-    nextMonth.setMonth(today.getMonth() + 1);
-
-    // db.clientes = [
-    //   {
-    //     id: 1,
-    //     nombre: "Juan Pérez",
-    //     dni: "12345678",
-    //     telefono: "123456789",
-    //     email: "juan@email.com",
-    //     membresia: "Premium",
-    //     vencimiento: formatDate(nextMonth),
-    //     activo: true,
-    //   },
-    //   {
-    //     id: 2,
-    //     nombre: "María García",
-    //     dni: "87654321",
-    //     telefono: "987654321",
-    //     email: "maria@email.com",
-    //     membresia: "Básica",
-    //     vencimiento: formatDate(tomorrow),
-    //     activo: true,
-    //   },
-    //   {
-    //     id: 3,
-    //     nombre: "Carlos López",
-    //     dni: "55555555",
-    //     telefono: "555123456",
-    //     email: "carlos@email.com",
-    //     membresia: "Premium",
-    //     vencimiento: formatDate(yesterday),
-    //     activo: false,
-    //   },
-    //   {
-    //     id: 4,
-    //     nombre: "Ana Martínez",
-    //     dni: "11111111",
-    //     telefono: "444789123",
-    //     email: "ana@email.com",
-    //     membresia: "Premium",
-    //     vencimiento: formatDate(inThreeDays),
-    //     activo: true,
-    //   },
-    //   {
-    //     id: 5,
-    //     nombre: "Luis Rodríguez",
-    //     dni: "22222222",
-    //     telefono: "333456789",
-    //     email: "luis@email.com",
-    //     membresia: "Oro",
-    //     vencimiento: formatDate(nextMonth),
-    //     activo: true,
-    //   },
-    //   {
-    //     id: 6,
-    //     nombre: "Marta Sánchez",
-    //     dni: "33333333",
-    //     telefono: "222987654",
-    //     email: "marta@email.com",
-    //     membresia: "Básica",
-    //     vencimiento: formatDate(yesterday),
-    //     activo: false,
-    //   },
-    //   {
-    //     id: 7,
-    //     nombre: "Pedro Gómez",
-    //     dni: "44444444",
-    //     telefono: "111222333",
-    //     email: "pedro@email.com",
-    //     membresia: "Platino",
-    //     vencimiento: formatDate(nextWeek),
-    //     activo: true,
-    //   },
-    // ];
-    localStorage.setItem("clientes", JSON.stringify(db.clientes));
-  }
-
-  // Generar algunos pagos de ejemplo
-  if (db.pagos.length === 0) {
-    const today = new Date();
-    const lastMonth = new Date(today);
-    lastMonth.setMonth(today.getMonth() - 1);
-
-    db.pagos = [
-      {
-        id: 1,
-        clienteId: 1,
-        monto: 1500,
-        fecha: formatDate(today),
-        timestamp: today.toISOString(),
-      },
-      {
-        id: 2,
-        clienteId: 2,
-        monto: 1000,
-        fecha: formatDate(today),
-        timestamp: today.toISOString(),
-      },
-      {
-        id: 3,
-        clienteId: 4,
-        monto: 1500,
-        fecha: formatDate(today),
-        timestamp: today.toISOString(),
-      },
-      {
-        id: 4,
-        clienteId: 5,
-        monto: 2000,
-        fecha: formatDate(today),
-        timestamp: today.toISOString(),
-      },
-      {
-        id: 5,
-        clienteId: 1,
-        monto: 1500,
-        fecha: formatDate(lastMonth),
-        timestamp: lastMonth.toISOString(),
-      },
-      {
-        id: 6,
-        clienteId: 3,
-        monto: 1500,
-        fecha: formatDate(lastMonth),
-        timestamp: lastMonth.toISOString(),
-      },
-    ];
-    localStorage.setItem("pagos", JSON.stringify(db.pagos));
-  }
-
-  // Guardar configuración por defecto si no existe
+  // NO cargar datos de ejemplo
+  // Solo mantener la configuración por defecto si no existe
   if (!localStorage.getItem("configuracion")) {
     localStorage.setItem("configuracion", JSON.stringify(db.configuracion));
   } else {
     db.configuracion = JSON.parse(localStorage.getItem("configuracion"));
   }
+
+  // Limpiar clientes y pagos
+  db.clientes = [];
+  db.pagos = [];
+  localStorage.removeItem("clientes");
+  localStorage.removeItem("pagos");
+
+  console.log("✅ Datos locales limpiados - Esperando autenticación");
 }
 
 // Formatear fecha a YYYY-MM-DD
@@ -1285,6 +1014,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Inicializar Firebase
   inicializarFirebase();
+
+    setTimeout(() => {
+      if (!isAuthenticated && !document.getElementById("modal-login")) {
+        console.log("🔄 Mostrando modal por timeout de seguridad");
+        mostrarModalLogin();
+      }
+    }, 1000);
 
   // Inicializar la página específica
   const currentPage = window.location.pathname.split("/").pop();
@@ -1724,6 +1460,43 @@ function buscarClientePorDni() {
 
 // Función para actualizar UI (faltante en tu código original)
 function actualizarUI() {
+  // Si no está autenticado, mostrar mensaje en lugar de datos
+  if (!isAuthenticated) {
+    const listaClientes = document.getElementById("lista-clientes");
+    const clientesRecientes = document.getElementById("clientes-recientes");
+
+    if (listaClientes) {
+      listaClientes.innerHTML = `
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 20px; color: #666;">
+                        <i class="fas fa-lock" style="font-size: 24px; margin-bottom: 10px;"></i><br>
+                        Inicia sesión para ver los clientes
+                    </td>
+                </tr>
+            `;
+    }
+
+    if (clientesRecientes) {
+      clientesRecientes.innerHTML = `
+                <tr>
+                    <td colspan="3" style="text-align: center; padding: 20px; color: #666;">
+                        Inicia sesión para ver clientes recientes
+                    </td>
+                </tr>
+            `;
+    }
+
+    // Limpiar estadísticas del dashboard
+    const clientesActivosElement = document.getElementById("clientes-activos");
+    const pagosMesElement = document.getElementById("pagos-mes");
+    const ingresosElement = document.getElementById("ingresos");
+
+    if (clientesActivosElement) clientesActivosElement.textContent = "0";
+    if (pagosMesElement) pagosMesElement.textContent = "0";
+    if (ingresosElement) ingresosElement.textContent = "0.00";
+
+    return; // Salir de la función early
+  }
   // Actualizar dashboard
   const clientesActivos = db.clientes.filter((c) => c.activo).length;
   const clientesActivosElement = document.getElementById("clientes-activos");
@@ -1804,6 +1577,8 @@ function actualizarUIautenticado() {
         connectionStatus.innerHTML = `<i class="fas fa-user-check"></i> Conectado`;
         connectionStatus.className = 'connection-status online';
     }
+
+    console.log("✅ UI de autenticación actualizada");
 }
 
 
