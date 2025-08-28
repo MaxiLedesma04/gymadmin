@@ -37,6 +37,50 @@ let db = {
 // Variable para almacenar el ID del cliente a eliminar
 let clienteIdAEliminar = null;
 
+////////Funcion para eliminar/////////
+document.addEventListener("click", (e) => {
+    if (e.target.closest(".btn-eliminar")) {
+        const btn = e.target.closest(".btn-eliminar");
+        clienteIdAEliminar = btn.getAttribute("data-id");
+        const nombreCliente = btn.getAttribute("data-nombre");
+
+        // Mostrar el nombre en el modal
+        document.getElementById("cliente-eliminar-nombre").textContent = nombreCliente;
+
+        // Abrir modal
+        document.getElementById("modal-eliminar").style.display = "flex";
+    }
+});
+
+// Cancelar eliminación
+document.getElementById("cancelar-eliminar").addEventListener("click", () => {
+    clienteIdAEliminar = null;
+    document.getElementById("modal-eliminar").style.display = "none";
+});
+
+// Confirmar eliminación
+document.getElementById("confirmar-eliminar").addEventListener("click", async () => {
+    if (!clienteIdAEliminar) return;
+
+    try {
+        await db.collection("clientes").doc(clienteIdAEliminar).delete();
+
+        // Eliminar la fila de la tabla en el DOM
+        const fila = document.querySelector(`[data-id="${clienteIdAEliminar}"]`).closest("tr");
+        if (fila) fila.remove();
+
+        alert("✅ Cliente eliminado con éxito");
+    } catch (error) {
+        console.error("❌ Error eliminando cliente:", error);
+        alert("Error eliminando cliente");
+    }
+
+    // Cerrar modal
+    document.getElementById("modal-eliminar").style.display = "none";
+    clienteIdAEliminar = null;
+});
+
+
 // Inicializar Firebase
 function inicializarFirebase() {
   try {
