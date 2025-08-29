@@ -1363,9 +1363,35 @@ function inicializarNotificaciones() {
     .addEventListener("click", guardarConfiguracionNotificaciones);
 }
 /// Funcion formatear numeros de telefono///////
+// function formatearTelefonoWhatsApp(telefono) {
+//   // Eliminar cualquier carácter que no sea número
+//   let numero = telefono.replace(/\D/g, "");
+
+//   // Si el número empieza con 0 (para números argentinos), reemplazar por 54
+//   if (numero.startsWith("0")) {
+//     numero = "54" + numero.substring(1);
+//   }
+
+//   // Si el número tiene 10 dígitos y empieza con 15 (para móviles argentinos)
+//   if (numero.length === 10 && numero.startsWith("15")) {
+//     numero = "549" + numero.substring(2);
+//   }
+
+//   // Si el número no tiene código de país, agregar el de Argentina (54)
+//   if (numero.length === 10 && !numero.startsWith("54")) {
+//     numero = "54" + numero;
+//   }
+
+//   return numero;
+// }
 function formatearTelefonoWhatsApp(telefono) {
+  if (!telefono) return "";
+
   // Eliminar cualquier carácter que no sea número
   let numero = telefono.replace(/\D/g, "");
+
+  // Si el número está vacío después de limpiar, retornar vacío
+  if (!numero) return "";
 
   // Si el número empieza con 0 (para números argentinos), reemplazar por 54
   if (numero.startsWith("0")) {
@@ -1377,15 +1403,18 @@ function formatearTelefonoWhatsApp(telefono) {
     numero = "549" + numero.substring(2);
   }
 
-  // Si el número no tiene código de país, agregar el de Argentina (54)
+  // Si el número no tiene código de país y tiene 10 dígitos, agregar 54
   if (numero.length === 10 && !numero.startsWith("54")) {
     numero = "54" + numero;
   }
 
+  // Si el número tiene 8 dígitos (sin 15), asumir que es de Argentina y agregar 549
+  if (numero.length === 8) {
+    numero = "549" + numero;
+  }
+
   return numero;
 }
-
-
 // Manejar navegación entre páginas
 function setupNavigation() {
   document.addEventListener("click", function (e) {
@@ -1456,6 +1485,48 @@ function loadPageContent(pageUrl) {
 
 // Función para mostrar todos los clientes (faltante en tu código original)
 
+// function mostrarTodosLosClientes() {
+//   const listaClientes = document.getElementById("lista-clientes");
+//   if (!listaClientes) {
+//     console.error("❌ No se encontró el elemento lista-clientes");
+//     return;
+//   }
+
+//   listaClientes.innerHTML = "";
+
+//   if (db.clientes.length === 0) {
+//     listaClientes.innerHTML =
+//       '<tr><td colspan="7" style="text-align: center;">No hay clientes registrados</td></tr>';
+//     return;
+//   }
+
+//   db.clientes.forEach((cliente) => {
+//     const tr = document.createElement("tr");
+//     tr.innerHTML = `
+//             <td>${cliente.nombre || "N/A"}</td>
+//             <td>${cliente.dni || "N/A"}</td>
+//             <td>${cliente.telefono || "N/A"}</td>
+//             <td>${cliente.email || "N/A"}</td>
+//             <td>${cliente.vencimiento || "N/A"}</td>
+//             <td><span class="status ${
+//               cliente.activo ? "status-active" : "status-inactive"
+//             }">${cliente.activo ? "Activo" : "Inactivo"}</span></td>
+//             <td>
+//                 <button class="editar-cliente" data-id="${cliente.id}">
+//                     <i class="fas fa-edit"></i>
+//                 </button>
+//                 <button class="eliminar-cliente" data-id="${
+//                   cliente.id
+//                 }" data-nombre="${cliente.nombre || "Cliente"}">
+//                     <i class="fas fa-trash"></i>
+//                 </button>
+//             </td>
+//         `;
+//     listaClientes.appendChild(tr);
+//   });
+
+//   console.log("✅ Lista de clientes mostrada. Total:", db.clientes.length);
+// }
 function mostrarTodosLosClientes() {
   const listaClientes = document.getElementById("lista-clientes");
   if (!listaClientes) {
@@ -1473,31 +1544,49 @@ function mostrarTodosLosClientes() {
 
   db.clientes.forEach((cliente) => {
     const tr = document.createElement("tr");
+
+    // Formatear el teléfono para WhatsApp si existe
+    const telefonoWhatsApp = cliente.telefono
+      ? formatearTelefonoWhatsApp(cliente.telefono)
+      : "";
+
     tr.innerHTML = `
-            <td>${cliente.nombre || "N/A"}</td>
-            <td>${cliente.dni || "N/A"}</td>
-            <td>${cliente.telefono || "N/A"}</td>
-            <td>${cliente.email || "N/A"}</td>
-            <td>${cliente.vencimiento || "N/A"}</td>
-            <td><span class="status ${
-              cliente.activo ? "status-active" : "status-inactive"
-            }">${cliente.activo ? "Activo" : "Inactivo"}</span></td>
-            <td>
-                <button class="editar-cliente" data-id="${cliente.id}">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="eliminar-cliente" data-id="${
-                  cliente.id
-                }" data-nombre="${cliente.nombre || "Cliente"}">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </td>
-        `;
+      <td>${cliente.nombre || "N/A"}</td>
+      <td>${cliente.dni || "N/A"}</td>
+      <td>
+        ${
+          cliente.telefono
+            ? `<a href="https://wa.me/${telefonoWhatsApp}" 
+            target="_blank" class="whatsapp-link" title="Enviar mensaje por WhatsApp">
+             ${cliente.telefono}
+          </a>`
+            : "N/A"
+        }
+      </td>
+      <td>${cliente.email || "N/A"}</td>
+      <td>${cliente.vencimiento || "N/A"}</td>
+      <td><span class="status ${
+        cliente.activo ? "status-active" : "status-inactive"
+      }">
+          ${cliente.activo ? "Activo" : "Inactivo"}
+      </span></td>
+      <td>
+        <button class="editar-cliente" data-id="${cliente.id}">
+          <i class="fas fa-edit"></i>
+        </button>
+        <button class="eliminar-cliente" data-id="${cliente.id}" data-nombre="${
+      cliente.nombre || "Cliente"
+    }">
+          <i class="fas fa-trash"></i>
+        </button>
+      </td>
+    `;
     listaClientes.appendChild(tr);
   });
 
   console.log("✅ Lista de clientes mostrada. Total:", db.clientes.length);
 }
+
 
 // Función para confirmar eliminación (faltante en tu código original)
 function confirmarEliminacion() {
@@ -1549,16 +1638,16 @@ function buscarClientes() {
       <td>${cliente.nombre || "N/A"}</td>
       <td>${cliente.dni || "N/A"}</td>
       <td>
-        ${
-          cliente.telefono
-            ? `<a href="https://wa.me/${formatearTelefonoWhatsApp(
-                cliente.telefono
-              )}" 
-          target="_blank" class="whatsapp-link" title="Enviar mensaje por WhatsApp">
-          ${cliente.telefono}
-          </a>`
-            : "N/A"
-        }
+          ${
+            cliente.telefono
+              ? `<a href="https://wa.me/${formatearTelefonoWhatsApp(
+                  cliente.telefono
+                )}" 
+            target="_blank" class="whatsapp-link" title="Enviar mensaje por WhatsApp">
+             ${cliente.telefono}
+              </a>`
+              : "N/A"
+          }
       </td>
       <td>${cliente.email || "N/A"}</td>
       <td>${cliente.vencimiento || "N/A"}</td>
