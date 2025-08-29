@@ -906,21 +906,69 @@ function updateConnectionStatus() {
 }
 
 // Cargar header en todas las páginas
+// function cargarHeader() {
+//   const headerContainer = document.getElementById("header-container");
+//   if (!headerContainer) return;
+
+//   fetch("/partials/header.html")
+//     .then((response) => response.text())
+//     .then((data) => {
+//       headerContainer.innerHTML = data;
+//       inicializarNavegacion();
+//       // Marcar la página activa en el menú
+//       const currentPage = window.location.pathname.split("/").pop();
+//       document.querySelectorAll("nav a").forEach((link) => {
+//         if (
+//           link.getAttribute("href") === currentPage ||
+//           (currentPage === "" && link.getAttribute("href") === "index.html")
+//         ) {
+//           link.classList.add("active");
+//         }
+//       });
+//     })
+//     .catch((error) => {
+//       console.error("Error cargando el header:", error);
+//     });
+// }
+
 function cargarHeader() {
   const headerContainer = document.getElementById("header-container");
   if (!headerContainer) return;
 
-  fetch("/partials/header.html")
-    .then((response) => response.text())
+  // Determinar la ruta correcta según el entorno
+  const isGitHubPages = window.location.hostname.includes("github.io");
+  const headerPath = isGitHubPages
+    ? "/gymadmin/partials/header.html"
+    : "/partials/header.html";
+
+  fetch(headerPath)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("No se pudo cargar el header: " + response.status);
+      }
+      return response.text();
+    })
     .then((data) => {
       headerContainer.innerHTML = data;
       inicializarNavegacion();
-      // Marcar la página activa en el menú
-      const currentPage = window.location.pathname.split("/").pop();
+
+      // Marcar la página activa en el menú - CORREGIDO
+      const currentPage =
+        window.location.pathname.split("/").pop() || "index.html";
+      const repoName = window.location.pathname.split("/")[1] || "";
+
       document.querySelectorAll("nav a").forEach((link) => {
+        let linkHref = link.getAttribute("href");
+
+        // Si estamos en GitHub Pages, remover el nombre del repo de la comparación
+        if (isGitHubPages && linkHref.includes(repoName)) {
+          linkHref = linkHref.replace(`/${repoName}`, "");
+        }
+
         if (
-          link.getAttribute("href") === currentPage ||
-          (currentPage === "" && link.getAttribute("href") === "index.html")
+          linkHref === currentPage ||
+          (currentPage === "index.html" && linkHref === "/") ||
+          (currentPage === "" && linkHref === "index.html")
         ) {
           link.classList.add("active");
         }
@@ -928,55 +976,41 @@ function cargarHeader() {
     })
     .catch((error) => {
       console.error("Error cargando el header:", error);
+      // Fallback: mostrar un header básico
+      headerContainer.innerHTML = `
+        <header>
+          <div class="header-content">
+            <div class="logo">
+              <i class="fas fa-dumbbell"></i>
+              <span>GymAdmin</span>
+            </div>
+            <nav>
+              <a href="${
+                isGitHubPages ? "/gymadmin/" : "/"
+              }" class="nav-link">Inicio</a>
+              <a href="${
+                isGitHubPages
+                  ? "/gymadmin/pages/clientes.html"
+                  : "/pages/clientes.html"
+              }" class="nav-link">Clientes</a>
+              <a href="${
+                isGitHubPages
+                  ? "/gymadmin/pages/rendimientos.html"
+                  : "/pages/rendimientos.html"
+              }" class="nav-link">Rendimientos</a>
+              <a href="${
+                isGitHubPages
+                  ? "/gymadmin/pages/configuracion.html"
+                  : "/pages/configuracion.html"
+              }" class="nav-link">Configuración</a>
+            </nav>
+            <button class="menu-toggle">☰</button>
+          </div>
+        </header>
+      `;
     });
 }
 
-// Cargar header en todas las páginas
-// function cargarHeader() {
-//   const headerContainer = document.getElementById("header-container");
-//   if (!headerContainer) return;
-
-//   // CAMBIA ESTA RUTA para que funcione desde cualquier subcarpeta
-//   const headerPath = window.location.pathname.includes('/pages/') 
-//     ? '../partials/header.html' 
-//     : 'partials/header.html';
-
-//   fetch(headerPath)
-//     .then((response) => {
-//       if (!response.ok) {
-//         throw new Error('No se pudo cargar el header');
-//       }
-//       return response.text();
-//     })
-//     .then((data) => {
-//       headerContainer.innerHTML = data;
-//       inicializarNavegacion();
-      
-//       // Marcar la página activa en el menú
-//       const currentPage = window.location.pathname.split("/").pop();
-//       document.querySelectorAll("nav a").forEach((link) => {
-//         const linkPage = link.getAttribute("href").split("/").pop();
-//         if (linkPage === currentPage || (currentPage === "" && linkPage === "index.html")) {
-//           link.classList.add("active");
-//         }
-//       });
-//     })
-//     .catch((error) => {
-//       console.error("Error cargando el header:", error);
-//       // Fallback: mostrar header básico
-//       headerContainer.innerHTML = `
-//         <header>
-//           <div class="header-content">
-//             <div class="logo">
-//               <i class="fas fa-dumbbell"></i>
-//               <span>GymAdmin</span>
-//             </div>
-//             <button class="menu-toggle">☰</button>
-//           </div>
-//         </header>
-//       `;
-//     });
-// }
 
 // Inicializar navegación
 function inicializarNavegacion() {
