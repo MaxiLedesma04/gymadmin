@@ -123,8 +123,73 @@ function inicializarFirebase() {
 }
 
 // Función para mostrar modal de login
+// function mostrarModalLogin() {
+//   // console.log("🔓 Mostrando modal de login");
+
+//   // Solo crear el modal si no existe
+//   if (!document.getElementById("modal-login")) {
+//     const modalHTML = `
+//         <div class="modal-backdrop active" id="modal-login" style="z-index: 10000; display: flex;">
+//             <div class="modal" style="max-width: 400px; margin: auto;">
+//                 <div class="modal-header">
+//                     <h3><i class="fas fa-lock"></i> Iniciar Sesión</h3>
+//                 </div>
+//                 <div class="modal-body">
+//                     <div class="form-group">
+//                         <label for="login-email">Email</label>
+//                         <input type="email" id="login-email" placeholder="tu@email.com" value="">
+//                     </div>
+//                     <div class="form-group">
+//                         <label for="login-password">Contraseña</label>
+//                         <input type="password" id="login-password" placeholder="Tu contraseña" value="">
+//                     </div>
+//                     <div class="form-group" style="display: flex; flex-direction: column; gap: 10px;">
+//                         <button id="btn-registrar" style="background: #27ae60;">
+//                             <i class="fas fa-user-plus"></i> Crear Cuenta
+//                         </button>
+//                         <button id="btn-login" style="background: #3498db;">
+//                             <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+//                         </button>
+//                     </div>
+//                     <p style="text-align: center; margin-top: 15px; font-size: 12px; color: #666;">
+//                         Usa test@test.com / 123456 para probar
+//                     </p>
+//                 </div>
+//             </div>
+//         </div>
+//         `;
+//     document.body.insertAdjacentHTML("beforeend", modalHTML);
+
+//     // Configurar event listeners
+//     document
+//       .getElementById("btn-login")
+//       .addEventListener("click", iniciarSesion);
+//     document
+//       .getElementById("btn-registrar")
+//       .addEventListener("click", registrarUsuario);
+
+//     // Permitir login con Enter
+//     document
+//       .getElementById("login-password")
+//       .addEventListener("keypress", function (e) {
+//         if (e.key === "Enter") {
+//           iniciarSesion();
+//         }
+//       });
+
+//     // console.log("✅ Modal de login creado");
+//   } else {
+//     // Si ya existe, mostrarlo
+//     document.getElementById("modal-login").classList.add("active");
+//   }
+// }
+
 function mostrarModalLogin() {
-  console.log("🔓 Mostrando modal de login");
+  // ✅ VERIFICAR SI YA ESTÁ AUTENTICADO PRIMERO
+  if (isAuthenticated) {
+    console.log("✅ Usuario ya autenticado, no mostrar modal");
+    return; // No mostrar modal si ya está logueado
+  }
 
   // Solo crear el modal si no existe
   if (!document.getElementById("modal-login")) {
@@ -137,11 +202,11 @@ function mostrarModalLogin() {
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="login-email">Email</label>
-                        <input type="email" id="login-email" placeholder="tu@email.com" value="test@test.com">
+                        <input type="email" id="login-email" placeholder="tu@email.com" value="">
                     </div>
                     <div class="form-group">
                         <label for="login-password">Contraseña</label>
-                        <input type="password" id="login-password" placeholder="Tu contraseña" value="123456">
+                        <input type="password" id="login-password" placeholder="Tu contraseña" value="">
                     </div>
                     <div class="form-group" style="display: flex; flex-direction: column; gap: 10px;">
                         <button id="btn-registrar" style="background: #27ae60;">
@@ -176,13 +241,30 @@ function mostrarModalLogin() {
           iniciarSesion();
         }
       });
-
-    console.log("✅ Modal de login creado");
   } else {
-    // Si ya existe, mostrarlo
-    document.getElementById("modal-login").classList.add("active");
+    // Si ya existe, mostrarlo SOLO si no está autenticado
+    if (!isAuthenticated) {
+      document.getElementById("modal-login").classList.add("active");
+    } else {
+      // Si está autenticado, asegurarse de ocultarlo
+      ocultarModalLogin();
+    }
   }
 }
+
+
+function ocultarModalLogin() {
+  const modal = document.getElementById("modal-login");
+  if (modal) {
+    modal.classList.remove("active");
+    modal.style.display = "none";
+
+    // Opcional: eliminar el modal completamente del DOM
+    // modal.remove();
+  }
+}
+
+
 
 // Función para registrar usuario
 async function registrarUsuario() {
@@ -229,6 +311,9 @@ async function iniciarSesion() {
   try {
     await authFirebase.signInWithEmailAndPassword(email, password);
     console.log("✅ Sesión iniciada correctamente");
+
+    // ✅ OCULTAR MODAL INMEDIATAMENTE DESPUÉS DE LOGIN EXITOSO
+    ocultarModalLogin();
   } catch (error) {
     console.error("❌ Error al iniciar sesión:", error);
 
