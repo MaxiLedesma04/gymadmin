@@ -1,76 +1,7 @@
-// const CACHE_NAME = "gymadmin-v1.0";
-// const urlsToCache = [
-//   "/gymadmin/",
-//   "/gymadmin/index.html",
-//   "/gymadmin/clientes.html",
-//   "/gymadmin/rendimientos.html",
-//   "/gymadmin/configuracion.html",
-//   "/gymadmin/notificaciones.html",
-//   "/gymadmin/css/styles.css",
-//   "/gymadmin/js/app.js",
-//   "/gymadmin/js/firebase-config.js",
-//   "/gymadmin/partials/header.html",
-//   "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css",
-//   "https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js",
-//   "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js",
-//   "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js",
-// ];
-
-// // Instalar el Service Worker y cachear recursos
-// self.addEventListener("install", function (event) {
-//   event.waitUntil(
-//     caches.open(CACHE_NAME).then(function (cache) {
-//       return cache.addAll(urlsToCache);
-//     })
-//   );
-// });
-
-// // Interceptar solicitudes y servir desde cache cuando sea posible
-// self.addEventListener("fetch", function (event) {
-//   event.respondWith(
-//     caches.match(event.request).then(function (response) {
-//       // Devuelve el recurso desde cache o haz la solicitud network
-//       return response || fetch(event.request);
-//     })
-//   );
-// });
-
-// // Limpiar caches viejos
-// self.addEventListener("activate", function (event) {
-//   event.waitUntil(
-//     caches.keys().then(function (cacheNames) {
-//       return Promise.all(
-//         cacheNames.map(function (cacheName) {
-//           if (cacheName !== CACHE_NAME) {
-//             return caches.delete(cacheName);
-//           }
-//         })
-//       );
-//     })
-//   );
-// });
-
-// const CACHE_NAME = "gymadmin-v1";
-// const urlsToCache = ["/", "/css/styles.css", "/js/app.js"];
-
-// self.addEventListener("install", (event) => {
-//   event.waitUntil(
-//     caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
-//   );
-// });
-
-// self.addEventListener("fetch", (event) => {
-//   event.respondWith(
-//     caches
-//       .match(event.request)
-//       .then((response) => response || fetch(event.request))
-//   );
-// });
-
-
 const CACHE_NAME = "gymadmin-v1.2";
+const REPO_NAME = "gymadmin"; // Nombre de tu repositorio
 
-// Determinar si es desarrollo por la URL
+// Determinar el entorno - GitHub Pages NO es desarrollo
 const isDevelopment =
   self.location.hostname.includes("localhost") ||
   self.location.hostname.includes("127.0.0.1");
@@ -85,17 +16,17 @@ const urlsToCache = isDevelopment
       "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js",
     ]
   : [
-      // PRODUCCIÓN: Todas las páginas y recursos
-      "/",
-      "/index.html",
-      "/pages/clientes.html",
-      "/pages/rendimientos.html",
-      "/pages/notificaciones.html",
-      "/pages/configuracion.html",
-      "/css/styles.css",
-      "/js/app.js",
-      "/js/firebase-config.js",
-      "/partials/header.html",
+      // PRODUCCIÓN (GitHub Pages): Todas las páginas y recursos
+      `/${REPO_NAME}/`,
+      `/${REPO_NAME}/index.html`,
+      `/${REPO_NAME}/pages/clientes.html`,
+      `/${REPO_NAME}/pages/rendimientos.html`,
+      `/${REPO_NAME}/pages/notificaciones.html`,
+      `/${REPO_NAME}/pages/configuracion.html`,
+      `/${REPO_NAME}/css/styles.css`,
+      `/${REPO_NAME}/js/app.js`,
+      `/${REPO_NAME}/js/firebase-config.js`,
+      `/${REPO_NAME}/partials/header.html`,
       "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css",
       "https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js",
       "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js",
@@ -110,11 +41,23 @@ self.addEventListener("install", (event) => {
   }
 
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log("📦 Cache abierto y agregando recursos");
+      return cache.addAll(urlsToCache);
+    })
   );
 });
 
 self.addEventListener("fetch", (event) => {
+  // Para recursos de Firebase y APIs, siempre ir a la red
+  if (
+    event.request.url.includes("firebase") ||
+    event.request.url.includes("googleapis")
+  ) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
   if (isDevelopment) {
     // DESARROLLO: No cachear, siempre ir a network
     event.respondWith(fetch(event.request));
@@ -125,7 +68,27 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(
     caches
       .match(event.request)
-      .then((response) => response || fetch(event.request))
+      .then((response) => {
+        // Devuelve el recurso en cache o busca en la red
+        return (
+          response ||
+          fetch(event.request).then((fetchResponse) => {
+            // Opcional: agregar nuevos recursos al cache
+            if (fetchResponse && fetchResponse.status === 200) {
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put(event.request, fetchResponse.clone());
+              });
+            }
+            return fetchResponse;
+          })
+        );
+      })
+      .catch(() => {
+        // Fallback para páginas: servir index.html para rutas SPA
+        if (event.request.mode === "navigate") {
+          return caches.match(`/${REPO_NAME}/index.html`);
+        }
+      })
   );
 });
 
@@ -142,6 +105,7 @@ self.addEventListener("activate", (event) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
+            console.log("🗑️ Eliminando cache viejo:", cacheName);
             return caches.delete(cacheName);
           }
         })
