@@ -825,7 +825,7 @@ function cargarHeader() {
   const headerContainer = document.getElementById("header-container");
   if (!headerContainer) return;
 
-  fetch("partials/header.html")
+  fetch("/partials/header.html")
     .then((response) => response.text())
     .then((data) => {
       headerContainer.innerHTML = data;
@@ -845,6 +845,53 @@ function cargarHeader() {
       console.error("Error cargando el header:", error);
     });
 }
+
+// Cargar header en todas las páginas
+// function cargarHeader() {
+//   const headerContainer = document.getElementById("header-container");
+//   if (!headerContainer) return;
+
+//   // CAMBIA ESTA RUTA para que funcione desde cualquier subcarpeta
+//   const headerPath = window.location.pathname.includes('/pages/') 
+//     ? '../partials/header.html' 
+//     : 'partials/header.html';
+
+//   fetch(headerPath)
+//     .then((response) => {
+//       if (!response.ok) {
+//         throw new Error('No se pudo cargar el header');
+//       }
+//       return response.text();
+//     })
+//     .then((data) => {
+//       headerContainer.innerHTML = data;
+//       inicializarNavegacion();
+      
+//       // Marcar la página activa en el menú
+//       const currentPage = window.location.pathname.split("/").pop();
+//       document.querySelectorAll("nav a").forEach((link) => {
+//         const linkPage = link.getAttribute("href").split("/").pop();
+//         if (linkPage === currentPage || (currentPage === "" && linkPage === "index.html")) {
+//           link.classList.add("active");
+//         }
+//       });
+//     })
+//     .catch((error) => {
+//       console.error("Error cargando el header:", error);
+//       // Fallback: mostrar header básico
+//       headerContainer.innerHTML = `
+//         <header>
+//           <div class="header-content">
+//             <div class="logo">
+//               <i class="fas fa-dumbbell"></i>
+//               <span>GymAdmin</span>
+//             </div>
+//             <button class="menu-toggle">☰</button>
+//           </div>
+//         </header>
+//       `;
+//     });
+// }
 
 // Inicializar navegación
 function inicializarNavegacion() {
@@ -1016,6 +1063,9 @@ function cargarNotificaciones() {
 
 // Modificar el evento DOMContentLoaded para inicializar Firebase
 document.addEventListener("DOMContentLoaded", function () {
+
+    setupNavigation();
+
   // Cargar el header
   cargarHeader();
 
@@ -1249,6 +1299,75 @@ function formatearTelefonoWhatsApp(telefono) {
 
   return numero;
 }
+
+
+// Manejar navegación entre páginas
+function setupNavigation() {
+  document.addEventListener("click", function (e) {
+    const link = e.target.closest("a");
+    if (link && link.href && link.getAttribute("href").endsWith(".html")) {
+      e.preventDefault();
+      const pageUrl = link.getAttribute("href");
+
+      // SI ESTÁS EN LOCALHOST, usa navegación normal
+      if (
+        window.location.hostname.includes("localhost") ||
+        window.location.hostname.includes("127.0.0.1")
+      ) {
+        window.location.href = pageUrl; // ← Navegación tradicional
+      } else {
+        navigateToPage(pageUrl); // ← SPA solo para producción
+      }
+    }
+  });
+}
+
+// ELIMINA navigateToPage para desarrollo o simplifícalo:
+function navigateToPage(pageUrl) {
+  // Solo para producción (GitHub Pages)
+  history.pushState(null, null, pageUrl);
+  loadPageContent(pageUrl);
+}
+
+function loadPageContent(pageUrl) {
+  // Solo para producción
+  const pageName = pageUrl.split("/").pop();
+  fetch(`pages/${pageName}`)
+    .then((response) => response.text())
+    .then((html) => {
+      document.getElementById("main-content").innerHTML = html;
+      initializePage(pageName);
+    });
+}
+
+function navigateToPage(pageUrl) {
+  // Si es desarrollo, usa navegación normal
+  if (window.location.hostname.includes('localhost') || 
+      window.location.hostname.includes('127.0.0.1')) {
+    window.location.href = pageUrl;
+    return;
+  }
+  
+  // Si es producción, usa History API para SPA
+  history.pushState(null, null, pageUrl);
+  loadPageContent(pageUrl);
+}
+
+function loadPageContent(pageUrl) {
+  const pageName = pageUrl.split('/').pop();
+  
+  fetch(`pages/${pageName}`)
+    .then(response => response.text())
+    .then(html => {
+      document.getElementById('main-content').innerHTML = html;
+      initializePage(pageName);
+    })
+    .catch(error => {
+      console.error('Error loading page:', error);
+      window.location.href = pageUrl; // Fallback
+    });
+}
+
 
 // Función para mostrar todos los clientes (faltante en tu código original)
 
