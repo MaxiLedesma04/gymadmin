@@ -761,7 +761,6 @@ function guardarPrecios() {
       basica: parseFloat(document.getElementById("precio-basica").value) || 0,
       premium: parseFloat(document.getElementById("precio-premium").value) || 0,
       oro: parseFloat(document.getElementById("precio-oro").value) || 0,
-      platino: parseFloat(document.getElementById("precio-platino").value) || 0,
     },
   };
 
@@ -1358,8 +1357,6 @@ function inicializarConfiguracion() {
     db.configuracion.precios.premium || "";
   document.getElementById("precio-oro").value =
     db.configuracion.precios.oro || "";
-  document.getElementById("precio-platino").value =
-    db.configuracion.precios.platino || "";
 
   // Configurar event listeners
   document
