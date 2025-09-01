@@ -1781,6 +1781,8 @@ function buscarClientePorDni() {
   const dni = document.getElementById("buscar-dni").value;
   const clienteInfo = document.getElementById("cliente-info");
   const clienteNombre = document.getElementById("cliente-nombre");
+  const clienteMembresia = document.getElementById("cliente-membresia").querySelector("span");
+  const clienteDias = document.getElementById("cliente-dias").querySelector("span");
 
   // Permitir búsqueda con al menos 4 caracteres o DNI completo
   if (dni.length < 4 && dni.length !== 8) {
@@ -1796,6 +1798,9 @@ function buscarClientePorDni() {
   if (clienteLocal) {
     clienteInfo.style.display = "block";
     
+    // Mostrar nombre del cliente
+    clienteNombre.textContent = clienteLocal.nombre || "Cliente";
+    
     // Función para mapear nombres de membresía
     function obtenerNombreMembresia(tipoMembresia) {
       const nombresMembresias = {
@@ -1803,6 +1808,10 @@ function buscarClientePorDni() {
         'premium': 'SEMANA COMPLETA', 
         'oro': 'OTROS',
         'platino': 'OTROS',
+        'Básica': '3 DIAS',
+        'Premium': 'SEMANA COMPLETA', 
+        'Oro': 'OTROS',
+        'Platino': 'OTROS',
         '3 DIAS': '3 DIAS',
         'SEMANA COMPLETA': 'SEMANA COMPLETA',
         'OTROS': 'OTROS'
@@ -1811,8 +1820,25 @@ function buscarClientePorDni() {
       return nombresMembresias[tipoMembresia] || tipoMembresia;
     }
     
+    // Mostrar tipo de membresía
     const nombreMembresia = obtenerNombreMembresia(clienteLocal.membresia);
-    clienteNombre.textContent = `${clienteLocal.nombre || "Cliente"} - ${nombreMembresia}`;
+    clienteMembresia.textContent = nombreMembresia;
+    
+    // Calcular y mostrar días restantes para el vencimiento
+    const hoy = new Date();
+    const vencimiento = new Date(clienteLocal.vencimiento);
+    const diasRestantes = Math.ceil((vencimiento - hoy) / (1000 * 60 * 60 * 24));
+    
+    if (diasRestantes > 7) {
+      clienteDias.textContent = "TODA LA SEMANA";
+    } else if (diasRestantes > 0) {
+      clienteDias.textContent = `${diasRestantes} DÍAS`;
+    } else if (diasRestantes === 0) {
+      clienteDias.textContent = "HOY VENCE";
+    } else {
+      clienteDias.textContent = `VENCIDO HACE ${Math.abs(diasRestantes)} DÍAS`;
+    }
+    
     return;
   }
 
@@ -1836,6 +1862,9 @@ function buscarClientePorDni() {
 
             clienteInfo.style.display = "block";
             
+            // Mostrar nombre del cliente
+            clienteNombre.textContent = clienteFirebase.nombre || "Cliente";
+            
             // Función para mapear nombres de membresía
             function obtenerNombreMembresia(tipoMembresia) {
               const nombresMembresias = {
@@ -1843,6 +1872,10 @@ function buscarClientePorDni() {
                 'premium': 'SEMANA COMPLETA', 
                 'oro': 'OTROS',
                 'platino': 'OTROS',
+                'Básica': '3 DIAS',
+                'Premium': 'SEMANA COMPLETA', 
+                'Oro': 'OTROS',
+                'Platino': 'OTROS',
                 '3 DIAS': '3 DIAS',
                 'SEMANA COMPLETA': 'SEMANA COMPLETA',
                 'OTROS': 'OTROS'
@@ -1851,8 +1884,24 @@ function buscarClientePorDni() {
               return nombresMembresias[tipoMembresia] || tipoMembresia;
             }
             
+            // Mostrar tipo de membresía
             const nombreMembresia = obtenerNombreMembresia(clienteFirebase.membresia);
-            clienteNombre.textContent = `${clienteFirebase.nombre || "Cliente"} - ${nombreMembresia}`;
+            clienteMembresia.textContent = nombreMembresia;
+            
+            // Calcular y mostrar días restantes para el vencimiento
+            const hoy = new Date();
+            const vencimiento = new Date(clienteFirebase.vencimiento);
+            const diasRestantes = Math.ceil((vencimiento - hoy) / (1000 * 60 * 60 * 24));
+            
+            if (diasRestantes > 7) {
+              clienteDias.textContent = "TODA LA SEMANA";
+            } else if (diasRestantes > 0) {
+              clienteDias.textContent = `${diasRestantes} DÍAS`;
+            } else if (diasRestantes === 0) {
+              clienteDias.textContent = "HOY VENCE";
+            } else {
+              clienteDias.textContent = `VENCIDO HACE ${Math.abs(diasRestantes)} DÍAS`;
+            }
 
             // Guardar localmente para futuras búsquedas
             if (!db.clientes.some((c) => c.id === clienteFirebase.id)) {
@@ -1881,7 +1930,6 @@ function buscarClientePorDni() {
     }
   }
 }
-
 
 // Función para actualizar UI (faltante en tu código original)
 function actualizarUI() {

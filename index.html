@@ -36,7 +36,7 @@
                     <p>Ingresos: $<span id="ingresos">0</span></p>
                 </div>
                 
-                <div class="card">
+                <!-- <div class="card">
                     <h3><i class="fas fa-money-bill-wave"></i> Registrar Pago</h3>
                     <div class="form-group">
                         <label for="buscar-dni">Buscar por DNI</label>
@@ -60,7 +60,46 @@
                         </div>
                         <button id="registrar-pago"><i class="fas fa-check"></i> Registrar Pago</button>
                     </div>
-                </div>
+                </div> -->
+                
+                <div class="card">
+                    <h3><i class="fas fa-money-bill-wave"></i> Registrar Pago</h3>
+                    <div class="form-group">
+                        <label for="buscar-dni">Buscar por DNI</label>
+                        <div class="search-box">
+                            <input type="text" id="buscar-dni" placeholder="Ingrese DNI del cliente" maxlength="8">
+                            <button id="btn-buscar-dni"><i class="fas fa-search"></i></button>
+                        </div>
+                    </div>
+                    <div id="cliente-info" style="display: none;">
+                        <div class="form-group">
+                            <label>Cliente encontrado:</label>
+                            <div id="cliente-nombre" style="padding: 0.5rem; background: #f8f9fa; border-radius: 4px; margin-bottom: 10px;"></div>
+                            </div>
+        
+        <!-- Añade estos elementos para mostrar la información adicional -->
+        <div class="client-details" style="display: flex; gap: 15px; margin-bottom: 15px;">
+            <div id="cliente-membresia" style="flex: 1; padding: 10px; background: #f8f9fa; border-radius: 4px; border-left: 4px solid #e74c3c;">
+                <strong style="display: block; font-size: 0.9em; color: #7f8c8d;">TIPO DE MEMBRESÍA</strong>
+                <span style="font-weight: bold;">Cargando...</span>
+            </div>
+            <div id="cliente-dias" style="flex: 1; padding: 10px; background: #f8f9fa; border-radius: 4px; border-left: 4px solid #2ecc71;">
+                <strong style="display: block; font-size: 0.9em; color: #7f8c8d;">TIEMPO RESTANTE</strong>
+                <span style="font-weight: bold;">Cargando...</span>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="monto">Monto</label>
+            <input type="number" id="monto" placeholder="Monto a pagar">
+        </div>
+        <div class="form-group">
+            <label for="fecha">Fecha</label>
+            <input type="date" id="fecha">
+        </div>
+        <button id="registrar-pago"><i class="fas fa-check"></i> Registrar Pago</button>
+    </div>
+</div>
                 
                 <div class="card">
                     <h3><i class="fas fa-history"></i> Clientes Recientes</h3>
