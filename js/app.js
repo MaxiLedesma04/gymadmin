@@ -486,6 +486,45 @@ async function guardarConfiguracionEnFirebase(config) {
 }
 
 // Función para guardar nuevo cliente (modificada para Firebase)
+// function guardarCliente() {
+//   const nombre = document.getElementById("nombre").value;
+//   const dni = document.getElementById("dni").value;
+//   const telefono = document.getElementById("telefono").value;
+//   const email = document.getElementById("email").value;
+//   const membresia = document.getElementById("membresia").value;
+//   const vencimiento = document.getElementById("vencimiento").value;
+//   const estado = document.getElementById("estado").value === "true";
+
+//   if (!nombre || !dni || !telefono || !membresia || !vencimiento) {
+//     alert("Por favor, complete todos los campos obligatorios");
+//     return;
+//   }
+
+//   // Verificar si ya existe un cliente con el mismo DNI (localmente)
+//   if (db.clientes.some((cliente) => cliente.dni === dni)) {
+//     alert("Ya existe un cliente con este DNI");
+//     return;
+//   }
+
+//   const nuevoCliente = {
+//     nombre: nombre,
+//     dni: dni,
+//     telefono: telefono,
+//     email: email,
+//     membresia: membresia,
+//     vencimiento: vencimiento,
+//     activo: estado,
+//   };
+
+//   guardarClienteEnFirebase(nuevoCliente);
+
+//   // Cerrar modal
+//   document.getElementById("modal-cliente").classList.remove("active");
+
+//   alert("Cliente guardado correctamente");
+// }
+
+// Función para guardar nuevo cliente (modificada para Firebase)
 function guardarCliente() {
   const nombre = document.getElementById("nombre").value;
   const dni = document.getElementById("dni").value;
@@ -506,12 +545,25 @@ function guardarCliente() {
     return;
   }
 
+  // Mapear nombres de membresía para guardar en la base de datos
+  function mapearMembresiaParaGuardar(membresiaSeleccionada) {
+    const mapeoMembresias = {
+      '3 DIAS': 'basica',
+      'SEMANA COMPLETA': 'premium', 
+      'OTROS': 'oro'
+    };
+    
+    return mapeoMembresias[membresiaSeleccionada] || membresiaSeleccionada;
+  }
+
+  const membresiaParaGuardar = mapearMembresiaParaGuardar(membresia);
+
   const nuevoCliente = {
     nombre: nombre,
     dni: dni,
     telefono: telefono,
     email: email,
-    membresia: membresia,
+    membresia: membresiaParaGuardar,
     vencimiento: vencimiento,
     activo: estado,
   };
