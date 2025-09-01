@@ -122,68 +122,6 @@ function inicializarFirebase() {
   }
 }
 
-// Función para mostrar modal de login
-// function mostrarModalLogin() {
-//   // console.log("🔓 Mostrando modal de login");
-
-//   // Solo crear el modal si no existe
-//   if (!document.getElementById("modal-login")) {
-//     const modalHTML = `
-//         <div class="modal-backdrop active" id="modal-login" style="z-index: 10000; display: flex;">
-//             <div class="modal" style="max-width: 400px; margin: auto;">
-//                 <div class="modal-header">
-//                     <h3><i class="fas fa-lock"></i> Iniciar Sesión</h3>
-//                 </div>
-//                 <div class="modal-body">
-//                     <div class="form-group">
-//                         <label for="login-email">Email</label>
-//                         <input type="email" id="login-email" placeholder="tu@email.com" value="">
-//                     </div>
-//                     <div class="form-group">
-//                         <label for="login-password">Contraseña</label>
-//                         <input type="password" id="login-password" placeholder="Tu contraseña" value="">
-//                     </div>
-//                     <div class="form-group" style="display: flex; flex-direction: column; gap: 10px;">
-//                         <button id="btn-registrar" style="background: #27ae60;">
-//                             <i class="fas fa-user-plus"></i> Crear Cuenta
-//                         </button>
-//                         <button id="btn-login" style="background: #3498db;">
-//                             <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
-//                         </button>
-//                     </div>
-//                     <p style="text-align: center; margin-top: 15px; font-size: 12px; color: #666;">
-//                         Usa test@test.com / 123456 para probar
-//                     </p>
-//                 </div>
-//             </div>
-//         </div>
-//         `;
-//     document.body.insertAdjacentHTML("beforeend", modalHTML);
-
-//     // Configurar event listeners
-//     document
-//       .getElementById("btn-login")
-//       .addEventListener("click", iniciarSesion);
-//     document
-//       .getElementById("btn-registrar")
-//       .addEventListener("click", registrarUsuario);
-
-//     // Permitir login con Enter
-//     document
-//       .getElementById("login-password")
-//       .addEventListener("keypress", function (e) {
-//         if (e.key === "Enter") {
-//           iniciarSesion();
-//         }
-//       });
-
-//     // console.log("✅ Modal de login creado");
-//   } else {
-//     // Si ya existe, mostrarlo
-//     document.getElementById("modal-login").classList.add("active");
-//   }
-// }
-
 function mostrarModalLogin() {
   // ✅ VERIFICAR SI YA ESTÁ AUTENTICADO PRIMERO
   if (isAuthenticated) {
@@ -651,12 +589,6 @@ function inicializarEliminarClientes() {
 
   console.log("✅ Sistema de eliminación inicializado correctamente");
 }
-
-// Función para eliminar cliente (modificada para Firebase)
-// function eliminarCliente(id) {
-//   eliminarClienteDeFirebase(id);
-//   alert("Cliente eliminado correctamente");
-// }
 
 // Función para eliminar cliente
 
@@ -1714,6 +1646,85 @@ function buscarClientes() {
 }
 
 // Buscar cliente por DNI para pago (adaptada para Firebase)
+// function buscarClientePorDni() {
+//   const dni = document.getElementById("buscar-dni").value;
+//   const clienteInfo = document.getElementById("cliente-info");
+//   const clienteNombre = document.getElementById("cliente-nombre");
+
+//   // Permitir búsqueda con al menos 4 caracteres o DNI completo
+//   if (dni.length < 4 && dni.length !== 8) {
+//     clienteInfo.style.display = "none";
+//     return;
+//   }
+
+//   // Buscar cliente localmente primero para respuesta inmediata
+//   const clienteLocal = db.clientes.find(
+//     (c) => c.dni && c.dni === dni && c.activo
+//   );
+
+//   if (clienteLocal) {
+//     clienteInfo.style.display = "block";
+//     clienteNombre.textContent = `${clienteLocal.nombre || "Cliente"} - ${
+//       clienteLocal.membresia || "Sin membresía"
+//     }`;
+//     return;
+//   }
+
+//   // Si no se encuentra localmente y hay conexión a Firebase, buscar allí
+//   if (dbFirebase && userUID) {
+//     try {
+//       // Buscar en Firebase
+//       dbFirebase
+//         .collection("clientes")
+//         .where("userId", "==", userUID)
+//         .where("dni", "==", dni)
+//         .where("activo", "==", true)
+//         .get()
+//         .then((querySnapshot) => {
+//           if (!querySnapshot.empty) {
+//             const clienteDoc = querySnapshot.docs[0];
+//             const clienteFirebase = {
+//               id: clienteDoc.id,
+//               ...clienteDoc.data(),
+//             };
+
+//             clienteInfo.style.display = "block";
+//             clienteNombre.textContent = `${
+//               clienteFirebase.nombre || "Cliente"
+//             } - ${clienteFirebase.membresia || "Sin membresía"}`
+//                         clienteNombre.textContent = `${
+//                           clienteFirebase.vencimiento || "Sin membresía"
+//                         }`;
+
+//             // Guardar localmente para futuras búsquedas
+//             if (!db.clientes.some((c) => c.id === clienteFirebase.id)) {
+//               db.clientes.push(clienteFirebase);
+//               localStorage.setItem("clientes", JSON.stringify(db.clientes));
+//             }
+//           } else {
+//             clienteInfo.style.display = "none";
+//             if (dni.length === 8) {
+//               alert("No se encontró un cliente activo con ese DNI");
+//             }
+//           }
+//         })
+//         .catch((error) => {
+//           console.error("Error buscando cliente en Firebase:", error);
+//           clienteInfo.style.display = "none";
+//         });
+//     } catch (error) {
+//       console.error("Error en búsqueda Firebase:", error);
+//       clienteInfo.style.display = "none";
+//     }
+//   } else {
+//     clienteInfo.style.display = "none";
+//     if (dni.length === 8) {
+//       alert("No se encontró un cliente activo con ese DNI");
+//     }
+//   }
+// }
+
+// Buscar cliente por DNI para pago (adaptada para Firebase)
 function buscarClientePorDni() {
   const dni = document.getElementById("buscar-dni").value;
   const clienteInfo = document.getElementById("cliente-info");
@@ -1732,9 +1743,24 @@ function buscarClientePorDni() {
 
   if (clienteLocal) {
     clienteInfo.style.display = "block";
-    clienteNombre.textContent = `${clienteLocal.nombre || "Cliente"} - ${
-      clienteLocal.membresia || "Sin membresía"
-    }`;
+    
+    // Función para mapear nombres de membresía
+    function obtenerNombreMembresia(tipoMembresia) {
+      const nombresMembresias = {
+        'basica': '3 DIAS',
+        'premium': 'SEMANA COMPLETA', 
+        'oro': 'OTROS',
+        'platino': 'OTROS',
+        '3 DIAS': '3 DIAS',
+        'SEMANA COMPLETA': 'SEMANA COMPLETA',
+        'OTROS': 'OTROS'
+      };
+      
+      return nombresMembresias[tipoMembresia] || tipoMembresia;
+    }
+    
+    const nombreMembresia = obtenerNombreMembresia(clienteLocal.membresia);
+    clienteNombre.textContent = `${clienteLocal.nombre || "Cliente"} - ${nombreMembresia}`;
     return;
   }
 
@@ -1757,9 +1783,24 @@ function buscarClientePorDni() {
             };
 
             clienteInfo.style.display = "block";
-            clienteNombre.textContent = `${
-              clienteFirebase.nombre || "Cliente"
-            } - ${clienteFirebase.membresia || "Sin membresía"}`;
+            
+            // Función para mapear nombres de membresía
+            function obtenerNombreMembresia(tipoMembresia) {
+              const nombresMembresias = {
+                'basica': '3 DIAS',
+                'premium': 'SEMANA COMPLETA', 
+                'oro': 'OTROS',
+                'platino': 'OTROS',
+                '3 DIAS': '3 DIAS',
+                'SEMANA COMPLETA': 'SEMANA COMPLETA',
+                'OTROS': 'OTROS'
+              };
+              
+              return nombresMembresias[tipoMembresia] || tipoMembresia;
+            }
+            
+            const nombreMembresia = obtenerNombreMembresia(clienteFirebase.membresia);
+            clienteNombre.textContent = `${clienteFirebase.nombre || "Cliente"} - ${nombreMembresia}`;
 
             // Guardar localmente para futuras búsquedas
             if (!db.clientes.some((c) => c.id === clienteFirebase.id)) {
@@ -1788,6 +1829,7 @@ function buscarClientePorDni() {
     }
   }
 }
+
 
 // Función para actualizar UI (faltante en tu código original)
 function actualizarUI() {
