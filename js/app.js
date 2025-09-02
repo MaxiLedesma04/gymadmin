@@ -2223,22 +2223,22 @@ function initializeInstallPrompt() {
   });
 
   // Al hacer clic en el botón de instalación
-  installButton.addEventListener("click", async () => {
-    if (!deferredPrompt) return;
+  // installButton.addEventListener("click", async () => {
+  //   if (!deferredPrompt) return;
 
-    // Mostrar el prompt de instalación nativo
-    deferredPrompt.prompt();
+  //   // Mostrar el prompt de instalación nativo
+  //   deferredPrompt.prompt();
 
-    // Esperar a que el usuario decida
-    const { outcome } = await deferredPrompt.userChoice;
+  //   // Esperar a que el usuario decida
+  //   const { outcome } = await deferredPrompt.userChoice;
 
-    if (outcome === "accepted") {
-      console.log("Usuario aceptó instalar la PWA");
-      installButton.style.display = "none";
-    }
+  //   if (outcome === "accepted") {
+  //     console.log("Usuario aceptó instalar la PWA");
+  //     installButton.style.display = "none";
+  //   }
 
-    deferredPrompt = null;
-  });
+  //   deferredPrompt = null;
+  // });
 
   // Ocultar el botón si ya está instalado
   window.addEventListener("appinstalled", () => {

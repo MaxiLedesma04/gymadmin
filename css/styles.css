@@ -496,7 +496,7 @@ table th {
     font-size: 0.875rem;
     z-index: 1000;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
 }
 
 .connection-status i {
@@ -635,13 +635,17 @@ table th {
         box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
     }
     
-    #btn-logout .logout-text {
-        display: none; /* Ocultar texto, solo icono */
+    .logout {
+        display: none
     }
     
     /* Asegurar que el botón sea visible */
     .user-menu {
         display: block !important;
+    }
+    .connection-status {
+        right: auto;
+        left: 1rem;
     }
 }
 
@@ -696,6 +700,13 @@ table th {
         font-size: 18px;
         bottom: 15px;
         right: 15px;
+    }
+    .logout {
+        display: none;
+    }
+    .connection-status {
+        right: auto;
+        left: 1rem;
     }
 }
 
