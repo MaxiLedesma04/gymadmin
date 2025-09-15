@@ -19,6 +19,7 @@ let dbFirebase = null;
 let authFirebase = null;
 let userUID = null;
 let isAuthenticated = false;
+let clienteIdAEditar = null;
 
 // Configuración de la base de datos (ahora con Firebase + localStorage para offline)
 let db = {
@@ -122,68 +123,6 @@ function inicializarFirebase() {
   }
 }
 
-// Función para mostrar modal de login
-// function mostrarModalLogin() {
-//   // console.log("🔓 Mostrando modal de login");
-
-//   // Solo crear el modal si no existe
-//   if (!document.getElementById("modal-login")) {
-//     const modalHTML = `
-//         <div class="modal-backdrop active" id="modal-login" style="z-index: 10000; display: flex;">
-//             <div class="modal" style="max-width: 400px; margin: auto;">
-//                 <div class="modal-header">
-//                     <h3><i class="fas fa-lock"></i> Iniciar Sesión</h3>
-//                 </div>
-//                 <div class="modal-body">
-//                     <div class="form-group">
-//                         <label for="login-email">Email</label>
-//                         <input type="email" id="login-email" placeholder="tu@email.com" value="">
-//                     </div>
-//                     <div class="form-group">
-//                         <label for="login-password">Contraseña</label>
-//                         <input type="password" id="login-password" placeholder="Tu contraseña" value="">
-//                     </div>
-//                     <div class="form-group" style="display: flex; flex-direction: column; gap: 10px;">
-//                         <button id="btn-registrar" style="background: #27ae60;">
-//                             <i class="fas fa-user-plus"></i> Crear Cuenta
-//                         </button>
-//                         <button id="btn-login" style="background: #3498db;">
-//                             <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
-//                         </button>
-//                     </div>
-//                     <p style="text-align: center; margin-top: 15px; font-size: 12px; color: #666;">
-//                         Usa test@test.com / 123456 para probar
-//                     </p>
-//                 </div>
-//             </div>
-//         </div>
-//         `;
-//     document.body.insertAdjacentHTML("beforeend", modalHTML);
-
-//     // Configurar event listeners
-//     document
-//       .getElementById("btn-login")
-//       .addEventListener("click", iniciarSesion);
-//     document
-//       .getElementById("btn-registrar")
-//       .addEventListener("click", registrarUsuario);
-
-//     // Permitir login con Enter
-//     document
-//       .getElementById("login-password")
-//       .addEventListener("keypress", function (e) {
-//         if (e.key === "Enter") {
-//           iniciarSesion();
-//         }
-//       });
-
-//     // console.log("✅ Modal de login creado");
-//   } else {
-//     // Si ya existe, mostrarlo
-//     document.getElementById("modal-login").classList.add("active");
-//   }
-// }
-
 function mostrarModalLogin() {
   // ✅ VERIFICAR SI YA ESTÁ AUTENTICADO PRIMERO
   if (isAuthenticated) {
@@ -209,10 +148,10 @@ function mostrarModalLogin() {
                         <input type="password" id="login-password" placeholder="Tu contraseña" value="">
                     </div>
                     <div class="form-group" style="display: flex; flex-direction: column; gap: 10px;">
-                        <button id="btn-registrar" style="background: #27ae60;">
+                        <button id="btn-registrar" style="background: #ff0000;">
                             <i class="fas fa-user-plus"></i> Crear Cuenta
                         </button>
-                        <button id="btn-login" style="background: #3498db;">
+                        <button id="btn-login" style="background: #ff0000;">
                             <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
                         </button>
                     </div>
@@ -464,6 +403,10 @@ async function guardarClienteEnFirebase(cliente) {
   }
 }
 
+
+/////////////////////////////////////Funciones para eliminar y Editar clientes////////////////////////////
+
+
 async function eliminarClienteDeFirebase(id) {
   // Eliminar de Firebase si está disponible
   if (dbFirebase) {
@@ -586,6 +529,209 @@ function guardarCliente() {
   alert("Cliente guardado correctamente");
 }
 
+ ////Funcion editar clientes///
+
+function inicializarEditarClientes() {
+  console.log("🔧 Inicializando sistema de edición...");
+
+  // Verificar que los elementos existan
+  const modalEditar = document.getElementById("modal-editar-cliente");
+  const cancelarEditar = document.getElementById("cancelar-editar-cliente");
+  const guardarEditar = document.getElementById("guardar-editar-cliente");
+
+  if (!modalEditar || !cancelarEditar || !guardarEditar) {
+    console.error("❌ Elementos del modal de edición no encontrados");
+    return;
+  }
+
+  // DELEGACIÓN DE EVENTOS - Para botones de editar
+  document.addEventListener("click", function (e) {
+    // Si se hace click en un botón de editar o en el icono de editar dentro de él
+    if (e.target.closest(".editar-cliente")) {
+      const button = e.target.closest(".editar-cliente");
+      const id = button.getAttribute("data-id");
+
+      console.log("🟢 Botón editar clickeado - ID:", id);
+      abrirModalEdicion(id);
+    }
+  });
+
+  // Configurar botones del modal
+  cancelarEditar.addEventListener("click", function () {
+    modalEditar.classList.remove("active");
+    clienteIdAEditar = null;
+  });
+
+  guardarEditar.addEventListener("click", function () {
+    if (clienteIdAEditar) {
+      console.log("✅ Confirmando edición del cliente ID:", clienteIdAEditar);
+      editarCliente(clienteIdAEditar);
+    }
+  });
+
+  // Cerrar modal con el botón X
+  const closeButton = modalEditar.querySelector(".modal-close");
+  if (closeButton) {
+    closeButton.addEventListener("click", function () {
+      modalEditar.classList.remove("active");
+      clienteIdAEditar = null;
+    });
+  }
+
+  console.log("✅ Sistema de edición inicializado correctamente");
+}
+
+// Abrir modal de edición con datos del cliente
+function abrirModalEdicion(id) {
+  const cliente = db.clientes.find(
+    (c) => c.id == id || c.id.toString() === id.toString()
+  );
+
+  if (!cliente) {
+    console.error("❌ Cliente no encontrado para editar");
+    alert("Cliente no encontrado");
+    return;
+  }
+
+  // Llenar el formulario con los datos del cliente
+  document.getElementById("editar-nombre").value = cliente.nombre || "";
+  document.getElementById("editar-dni").value = cliente.dni || "";
+  document.getElementById("editar-telefono").value = cliente.telefono || "";
+  document.getElementById("editar-email").value = cliente.email || "";
+  document.getElementById("editar-membresia").value = cliente.membresia || "";
+  document.getElementById("editar-vencimiento").value =
+    cliente.vencimiento || "";
+  document.getElementById("editar-estado").value = cliente.activo
+    ? "true"
+    : "false";
+
+  // Guardar ID del cliente a editar
+  clienteIdAEditar = id;
+
+  // Mostrar modal
+  document.getElementById("modal-editar-cliente").classList.add("active");
+}
+
+// Función para editar cliente
+async function editarCliente(id) {
+  console.log("✏️ Editando cliente ID:", id);
+
+  // Obtener valores del formulario
+  const nombre = document.getElementById("editar-nombre").value;
+  const dni = document.getElementById("editar-dni").value;
+  const telefono = document.getElementById("editar-telefono").value;
+  const email = document.getElementById("editar-email").value;
+  const membresia = document.getElementById("editar-membresia").value;
+  const vencimiento = document.getElementById("editar-vencimiento").value;
+  const estado = document.getElementById("editar-estado").value === "true";
+
+  // Validaciones
+  if (!nombre || !dni || !telefono || !membresia || !vencimiento) {
+    alert("Por favor, complete todos los campos obligatorios");
+    return;
+  }
+
+  // Verificar si ya existe otro cliente con el mismo DNI (excluyendo el actual)
+  const clienteExistente = db.clientes.find(
+    (c) => c.dni === dni && c.id != id && c.id.toString() !== id.toString()
+  );
+
+  if (clienteExistente) {
+    alert("Ya existe otro cliente con este DNI");
+    return;
+  }
+
+  try {
+    // Buscar el cliente
+    const clienteIndex = db.clientes.findIndex(
+      (cliente) => cliente.id == id || cliente.id.toString() === id.toString()
+    );
+
+    if (clienteIndex === -1) {
+      console.error("❌ Cliente no encontrado");
+      alert("Cliente no encontrado");
+      return;
+    }
+
+    // Guardar datos antiguos para posible rollback
+    const clienteAntiguo = { ...db.clientes[clienteIndex] };
+    const clienteNombre = clienteAntiguo.nombre || "Cliente";
+
+    // Actualizar datos localmente
+    db.clientes[clienteIndex] = {
+      ...db.clientes[clienteIndex],
+      nombre: nombre,
+      dni: dni,
+      telefono: telefono,
+      email: email,
+      membresia: membresia,
+      vencimiento: vencimiento,
+      activo: estado,
+    };
+
+    // Guardar en localStorage
+    localStorage.setItem("clientes", JSON.stringify(db.clientes));
+
+    // Actualizar UI
+    mostrarTodosLosClientes();
+    cargarNotificaciones();
+
+    // Actualizar en Firebase si está disponible
+    if (dbFirebase) {
+      try {
+        console.log("🔥 Intentando actualizar en Firebase...");
+        await actualizarClienteEnFirebase(id, db.clientes[clienteIndex]);
+        console.log("✅ Cliente actualizado en Firebase");
+      } catch (firebaseError) {
+        console.error("❌ Error actualizando en Firebase:", firebaseError);
+        // Revertir cambios locales si falla Firebase
+        db.clientes[clienteIndex] = clienteAntiguo;
+        localStorage.setItem("clientes", JSON.stringify(db.clientes));
+        mostrarTodosLosClientes();
+        throw firebaseError;
+      }
+    }
+
+    // Cerrar modal
+    document.getElementById("modal-editar-cliente").classList.remove("active");
+    clienteIdAEditar = null;
+
+    alert(`✅ ${clienteNombre} actualizado correctamente`);
+  } catch (error) {
+    console.error("❌ Error editando cliente:", error);
+    alert("Error al editar el cliente");
+  }
+}
+
+////////Función para actualizar cliente editado en Firebase//
+async function actualizarClienteEnFirebase(id, cliente) {
+  if (!dbFirebase) return;
+
+  try {
+    const clienteActualizado = {
+      userId: userUID,
+      nombre: cliente.nombre,
+      dni: cliente.dni,
+      telefono: cliente.telefono,
+      email: cliente.email,
+      membresia: cliente.membresia,
+      vencimiento: cliente.vencimiento,
+      activo: cliente.activo,
+      fechaCreacion: cliente.fechaCreacion || new Date().toISOString(),
+      fechaActualizacion: new Date().toISOString(),
+    };
+
+    await dbFirebase
+      .collection("clientes")
+      .doc(id.toString())
+      .set(clienteActualizado, { merge: true });
+    console.log("Cliente actualizado en Firebase");
+  } catch (error) {
+    console.error("Error actualizando cliente en Firebase:", error);
+    throw error;
+  }
+}
+
 ////Funcion eliminar clientes
 function inicializarEliminarClientes() {
   console.log("🔧 Inicializando sistema de eliminación...");
@@ -652,11 +798,6 @@ function inicializarEliminarClientes() {
   console.log("✅ Sistema de eliminación inicializado correctamente");
 }
 
-// Función para eliminar cliente (modificada para Firebase)
-// function eliminarCliente(id) {
-//   eliminarClienteDeFirebase(id);
-//   alert("Cliente eliminado correctamente");
-// }
 
 // Función para eliminar cliente
 
@@ -1148,8 +1289,7 @@ function cargarNotificaciones() {
 
 // Modificar el evento DOMContentLoaded para inicializar Firebase
 document.addEventListener("DOMContentLoaded", function () {
-
-    setupNavigation();
+  setupNavigation();
 
   // Cargar el header
   cargarHeader();
@@ -1178,6 +1318,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
   if (campoFecha) campoFecha.value = hoy;
   if (campoVencimiento) campoVencimiento.value = hoy;
+
+  // Inicializar edición de clientes con un pequeño delay
+  setTimeout(() => {
+    inicializarEditarClientes();
+  }, 300);
 
   // Verificar estado de conexión periódicamente
   setInterval(updateConnectionStatus, 30000);
@@ -1300,6 +1445,7 @@ function inicializarClientes() {
   // Inicializar eliminación de clientes con un pequeño delay
   setTimeout(() => {
     inicializarEliminarClientes();
+    inicializarEditarClientes();
   }, 300);
 
   console.log("✅ Página de clientes inicializada correctamente");

@@ -123,6 +123,60 @@
         </div>
     </div>
 
+    <!-- Modal para editar cliente -->
+    <div id="modal-editar-cliente" class="modal-backdrop">
+        <div class="modal">
+            <div class="modal-header">
+            <h2>Editar Cliente</h2>
+            <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+            <form id="form-editar-cliente">
+                <div class="form-group">
+                <label for="editar-nombre">Nombre completo *</label>
+                <input type="text" id="editar-nombre" required>
+                </div>
+                <div class="form-group">
+                <label for="editar-dni">DNI *</label>
+                <input type="text" id="editar-dni" required>
+                </div>
+                <div class="form-group">
+                <label for="editar-telefono">Teléfono *</label>
+                <input type="tel" id="editar-telefono" required>
+                </div>
+                <div class="form-group">
+                <label for="editar-email">Email</label>
+                <input type="email" id="editar-email">
+                </div>
+                <div class="form-group">
+                <label for="editar-membresia">Tipo de membresía *</label>
+                <select id="editar-membresia" required>
+                    <option value="basica">Básica</option>
+                    <option value="premium">Premium</option>
+                    <option value="oro">Oro</option>
+                    <option value="platino">Platino</option>
+                </select>
+                </div>
+                <div class="form-group">
+                <label for="editar-vencimiento">Fecha de vencimiento *</label>
+                <input type="date" id="editar-vencimiento" required>
+                </div>
+                <div class="form-group">
+                <label for="editar-estado">Estado *</label>
+                <select id="editar-estado" required>
+                    <option value="true">Activo</option>
+                    <option value="false">Inactivo</option>
+                </select>
+                </div>
+            </form>
+            </div>
+            <div class="modal-footer">
+            <button id="cancelar-editar-cliente" class="btn btn-secondary">Cancelar</button>
+            <button id="guardar-editar-cliente" class="btn btn-primary">Guardar cambios</button>
+            </div>
+        </div>
+    </div>
+
     <!-- <div id="connection-status" class="connection-status online">
         <i class="fas fa-wifi"></i> En línea
     </div> -->
