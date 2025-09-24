@@ -1,11 +1,12 @@
 :root {
-    --primary-color: #3498db;
-    --secondary-color: #2c3e50;
+    /* --primary-color: #3498db; */
+    --primary-color: #ff0000;
+    --secondary-color: #000000;
     --accent-color: #e74c3c;
     --success-color: #2ecc71;
     --warning-color: #f39c12;
     --light-color: #ecf0f1;
-    --dark-color: #34495e;
+    --dark-color: #000000;
 }
 
 * {
@@ -24,7 +25,7 @@ body {margin: 0;
 
 /* Header Styles */
 header {
-    background-color: var(--secondary-color);
+    background-color: #000000;
     color: white;
     padding: 1rem;
     position: sticky;
@@ -51,7 +52,16 @@ header {
 .logo i {
     margin-right: 0.5rem;
 }
+.logo-icon {
+    display: flex;
+    align-items: center;
+    height: 40px;   /* Alto máximo dentro del navbar */
+}
 
+.logo-icon img {
+    height: 100%;
+    width: auto; 
+}
 .header-actions {
     display: flex;
     align-items: center;
@@ -180,7 +190,7 @@ nav ul li a i {
 }
 
 nav ul li a:hover, nav ul li a.active {
-    background-color: rgba(255,255,255,0.1);
+    background-color: #ff0000;
 }
 
 /* Main Content */
@@ -650,9 +660,9 @@ table th {
 }
 
 @media (max-width: 480px) {
-    .logo span {
+    /* .logo span {
         display: none;
-    }
+    } */
     
     .logo i {
         margin-right: 0;
@@ -746,6 +756,7 @@ table th {
 
 .install-button button {
     background: #3498db;
+    /* background: var(--accent-color); */
     color: white;
     border: none;
     padding: 12px 20px;
