@@ -490,44 +490,6 @@ async function guardarConfiguracionEnFirebase(config) {
   }
 }
 
-// Función para guardar nuevo cliente (modificada para Firebase)
-// function guardarCliente() {
-//   const nombre = document.getElementById("nombre").value;
-//   const dni = document.getElementById("dni").value;
-//   const telefono = document.getElementById("telefono").value;
-//   const email = document.getElementById("email").value;
-//   const membresia = document.getElementById("membresia").value;
-//   const vencimiento = document.getElementById("vencimiento").value;
-//   const estado = document.getElementById("estado").value === "true";
-
-//   if (!nombre || !dni || !telefono || !membresia || !vencimiento) {
-//     alert("Por favor, complete todos los campos obligatorios");
-//     return;
-//   }
-
-//   // Verificar si ya existe un cliente con el mismo DNI (localmente)
-//   if (db.clientes.some((cliente) => cliente.dni === dni)) {
-//     alert("Ya existe un cliente con este DNI");
-//     return;
-//   }
-
-//   const nuevoCliente = {
-//     nombre: nombre,
-//     dni: dni,
-//     telefono: telefono,
-//     email: email,
-//     membresia: membresia,
-//     vencimiento: vencimiento,
-//     activo: estado,
-//   };
-
-//   guardarClienteEnFirebase(nuevoCliente);
-
-//   // Cerrar modal
-//   document.getElementById("modal-cliente").classList.remove("active");
-
-//   alert("Cliente guardado correctamente");
-// }
 
 // Función para guardar nuevo cliente (modificada para Firebase)
 function guardarCliente() {
@@ -536,10 +498,10 @@ function guardarCliente() {
   const telefono = document.getElementById("telefono").value;
   const email = document.getElementById("email").value;
   const membresia = document.getElementById("membresia").value;
-  const vencimiento = document.getElementById("vencimiento").value;
+  let vencimiento = document.getElementById("vencimiento").value; // Mantener la variable
   const estado = document.getElementById("estado").value === "true";
 
-  if (!nombre || !dni || !telefono || !membresia || !vencimiento) {
+  if (!nombre || !dni || !telefono || !membresia) {
     alert("Por favor, complete todos los campos obligatorios");
     return;
   }
@@ -550,18 +512,36 @@ function guardarCliente() {
     return;
   }
 
+  // Función para calcular la fecha de vencimiento (hoy + 1 mes)
+  function calcularVencimiento() {
+    const hoy = new Date();
+    const vencimiento = new Date(hoy);
+
+    // Sumar 1 mes
+    vencimiento.setMonth(vencimiento.getMonth() + 1);
+
+    // Formatear como YYYY-MM-DD para el input date
+    const año = vencimiento.getFullYear();
+    const mes = String(vencimiento.getMonth() + 1).padStart(2, "0");
+    const dia = String(vencimiento.getDate()).padStart(2, "0");
+
+    return `${año}-${mes}-${dia}`;
+  }
+
   // Mapear nombres de membresía para guardar en la base de datos
   function mapearMembresiaParaGuardar(membresiaSeleccionada) {
     const mapeoMembresias = {
-      '3 DIAS': 'basica',
-      'SEMANA COMPLETA': 'premium', 
-      'OTROS': 'oro'
+      "3 DIAS": "basica",
+      "SEMANA COMPLETA": "premium",
+      OTROS: "oro",
     };
-    
     return mapeoMembresias[membresiaSeleccionada] || membresiaSeleccionada;
   }
 
   const membresiaParaGuardar = mapearMembresiaParaGuardar(membresia);
+
+  // Sobrescribir el valor de vencimiento con la fecha calculada
+  vencimiento = calcularVencimiento();
 
   const nuevoCliente = {
     nombre: nombre,
@@ -569,7 +549,7 @@ function guardarCliente() {
     telefono: telefono,
     email: email,
     membresia: membresiaParaGuardar,
-    vencimiento: vencimiento,
+    vencimiento: vencimiento, // Usar la fecha calculada automáticamente
     activo: estado,
   };
 
@@ -577,7 +557,6 @@ function guardarCliente() {
 
   // Cerrar modal
   document.getElementById("modal-cliente").classList.remove("active");
-
   alert("Cliente guardado correctamente");
 }
 
@@ -651,8 +630,7 @@ function abrirModalEdicion(id) {
   document.getElementById("editar-telefono").value = cliente.telefono || "";
   document.getElementById("editar-email").value = cliente.email || "";
   document.getElementById("editar-membresia").value = cliente.membresia || "";
-  document.getElementById("editar-vencimiento").value =
-    cliente.vencimiento || "";
+  document.getElementById("editar-vencimiento").value = cliente.vencimiento || "";
   document.getElementById("editar-estado").value = cliente.activo
     ? "true"
     : "false";
@@ -906,6 +884,33 @@ async function eliminarCliente(id) {
 }
 
 // Función para registrar pago (modificada para Firebase)
+// function registrarPago() {
+//   const dni = document.getElementById("buscar-dni").value;
+//   const cliente = db.clientes.find((c) => c.dni && c.dni === dni);
+//   const monto = parseFloat(document.getElementById("monto").value);
+//   const fecha = document.getElementById("fecha").value;
+
+//   if (!cliente || !monto || !fecha) {
+//     alert("Por favor, complete todos los campos");
+//     return;
+//   }
+
+//   const nuevoPago = {
+//     clienteId: cliente.id,
+//     monto: monto,
+//     fecha: fecha,
+//   };
+
+//   guardarPagoEnFirebase(nuevoPago);
+
+//   // Limpiar formulario
+//   document.getElementById("buscar-dni").value = "";
+//   document.getElementById("monto").value = "";
+//   document.getElementById("fecha").value = "";
+//   document.getElementById("cliente-info").style.display = "none";
+
+//   alert("Pago registrado correctamente");
+// }
 function registrarPago() {
   const dni = document.getElementById("buscar-dni").value;
   const cliente = db.clientes.find((c) => c.dni && c.dni === dni);
@@ -917,6 +922,58 @@ function registrarPago() {
     return;
   }
 
+  // Verificar si la membresía está vencida (CORREGIDO)
+  function estaVencida(fechaVencimiento) {
+    const hoy = new Date();
+    const vencimiento = new Date(fechaVencimiento);
+
+    // Resetear horas para comparar solo fechas
+    const hoySoloFecha = new Date(
+      hoy.getFullYear(),
+      hoy.getMonth(),
+      hoy.getDate()
+    );
+    const vencimientoSoloFecha = new Date(
+      vencimiento.getFullYear(),
+      vencimiento.getMonth(),
+      vencimiento.getDate()
+    );
+
+    return hoySoloFecha > vencimientoSoloFecha;
+  }
+
+  if (estaVencida(cliente.vencimiento)) {
+    // Mostrar modal de membresía vencida
+    mostrarModalVencida(cliente, monto, fecha);
+    return;
+  } else {
+    // Si no está vencida, proceder normalmente
+    procederConPago(cliente, monto, fecha);
+  }
+}
+
+function mostrarModalVencida(cliente, monto, fecha) {
+  const modal = document.getElementById("modal-vencida");
+  modal.classList.add("active");
+
+  // Limpiar eventos previos para evitar duplicados
+  document.getElementById("btn-pagar").onclick = null;
+  document.getElementById("btn-descartar").onclick = null;
+
+  // Configurar evento para botón Pagar
+  document.getElementById("btn-pagar").onclick = function () {
+    modal.classList.remove("active");
+    procederConPago(cliente, monto, fecha);
+  };
+
+  // Configurar evento para botón Descartar
+  document.getElementById("btn-descartar").onclick = function () {
+    modal.classList.remove("active");
+    limpiarFormularioPago();
+  };
+}
+
+function procederConPago(cliente, monto, fecha) {
   const nuevoPago = {
     clienteId: cliente.id,
     monto: monto,
@@ -924,14 +981,51 @@ function registrarPago() {
   };
 
   guardarPagoEnFirebase(nuevoPago);
+  limpiarFormularioPago();
+  alert("Pago registrado correctamente");
+}
 
-  // Limpiar formulario
+function limpiarFormularioPago() {
   document.getElementById("buscar-dni").value = "";
   document.getElementById("monto").value = "";
   document.getElementById("fecha").value = "";
   document.getElementById("cliente-info").style.display = "none";
+}
 
+function mostrarModalVencida(cliente, monto, fecha) {
+  const modal = document.getElementById("modal-vencida");
+  modal.classList.add("active");
+
+  // Configurar evento para botón Pagar
+  document.getElementById("btn-pagar").onclick = function () {
+    modal.classList.remove("active");
+    procederConPago(cliente, monto, fecha);
+  };
+
+  // Configurar evento para botón Descartar
+  document.getElementById("btn-descartar").onclick = function () {
+    modal.classList.remove("active");
+    limpiarFormularioPago();
+  };
+}
+
+function procederConPago(cliente, monto, fecha) {
+  const nuevoPago = {
+    clienteId: cliente.id,
+    monto: monto,
+    fecha: fecha,
+  };
+
+  guardarPagoEnFirebase(nuevoPago);
+  limpiarFormularioPago();
   alert("Pago registrado correctamente");
+}
+
+function limpiarFormularioPago() {
+  document.getElementById("buscar-dni").value = "";
+  document.getElementById("monto").value = "";
+  document.getElementById("fecha").value = "";
+  document.getElementById("cliente-info").style.display = "none";
 }
 
 // Funciones de configuración (modificadas para Firebase)
@@ -1097,32 +1191,6 @@ function updateConnectionStatus() {
   }
 }
 
-// Cargar header en todas las páginas
-// function cargarHeader() {
-//   const headerContainer = document.getElementById("header-container");
-//   if (!headerContainer) return;
-
-//   fetch("/partials/header.html")
-//     .then((response) => response.text())
-//     .then((data) => {
-//       headerContainer.innerHTML = data;
-//       inicializarNavegacion();
-//       // Marcar la página activa en el menú
-//       const currentPage = window.location.pathname.split("/").pop();
-//       document.querySelectorAll("nav a").forEach((link) => {
-//         if (
-//           link.getAttribute("href") === currentPage ||
-//           (currentPage === "" && link.getAttribute("href") === "index.html")
-//         ) {
-//           link.classList.add("active");
-//         }
-//       });
-//     })
-//     .catch((error) => {
-//       console.error("Error cargando el header:", error);
-//     });
-// }
-
 function cargarHeader() {
   const headerContainer = document.getElementById("header-container");
   if (!headerContainer) return;
@@ -1276,10 +1344,25 @@ function formatDate(date) {
 // Calcular días entre dos fechas
 function diasEntreFechas(fecha1, fecha2) {
   const unDia = 24 * 60 * 60 * 1000; // milisegundos en un día
-  const diffDias = Math.round(Math.abs((fecha1 - fecha2) / unDia));
+
+  // Resetear horas para comparar solo fechas
+  const f1 = new Date(
+    fecha1.getFullYear(),
+    fecha1.getMonth(),
+    fecha1.getDate()
+  );
+  const f2 = new Date(
+    fecha2.getFullYear(),
+    fecha2.getMonth(),
+    fecha2.getDate()
+  );
+
+  // Calcular diferencia en días (puede ser negativo si está vencida)
+  const diffTiempo = f2 - f1;
+  const diffDias = Math.floor(diffTiempo / unDia);
+
   return diffDias;
 }
-
 // Cargar notificaciones de membresías próximas a vencer
 function cargarNotificaciones() {
   const hoy = new Date();
@@ -1714,48 +1797,6 @@ function loadPageContent(pageUrl) {
 
 // Función para mostrar todos los clientes (faltante en tu código original)
 
-// function mostrarTodosLosClientes() {
-//   const listaClientes = document.getElementById("lista-clientes");
-//   if (!listaClientes) {
-//     console.error("❌ No se encontró el elemento lista-clientes");
-//     return;
-//   }
-
-//   listaClientes.innerHTML = "";
-
-//   if (db.clientes.length === 0) {
-//     listaClientes.innerHTML =
-//       '<tr><td colspan="7" style="text-align: center;">No hay clientes registrados</td></tr>';
-//     return;
-//   }
-
-//   db.clientes.forEach((cliente) => {
-//     const tr = document.createElement("tr");
-//     tr.innerHTML = `
-//             <td>${cliente.nombre || "N/A"}</td>
-//             <td>${cliente.dni || "N/A"}</td>
-//             <td>${cliente.telefono || "N/A"}</td>
-//             <td>${cliente.email || "N/A"}</td>
-//             <td>${cliente.vencimiento || "N/A"}</td>
-//             <td><span class="status ${
-//               cliente.activo ? "status-active" : "status-inactive"
-//             }">${cliente.activo ? "Activo" : "Inactivo"}</span></td>
-//             <td>
-//                 <button class="editar-cliente" data-id="${cliente.id}">
-//                     <i class="fas fa-edit"></i>
-//                 </button>
-//                 <button class="eliminar-cliente" data-id="${
-//                   cliente.id
-//                 }" data-nombre="${cliente.nombre || "Cliente"}">
-//                     <i class="fas fa-trash"></i>
-//                 </button>
-//             </td>
-//         `;
-//     listaClientes.appendChild(tr);
-//   });
-
-//   console.log("✅ Lista de clientes mostrada. Total:", db.clientes.length);
-// }
 function mostrarTodosLosClientes() {
   const listaClientes = document.getElementById("lista-clientes");
   if (!listaClientes) {
