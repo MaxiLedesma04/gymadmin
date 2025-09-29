@@ -27,6 +27,7 @@ const urlsToCache = isDevelopment
       `/${REPO_NAME}/js/app.js`,
       `/${REPO_NAME}/js/firebase-config.js`,
       `/${REPO_NAME}/partials/header.html`,
+      `/${REPO_NAME}/icons/logo_focus_fit.png`,
       "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css",
       "https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js",
       "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js",
